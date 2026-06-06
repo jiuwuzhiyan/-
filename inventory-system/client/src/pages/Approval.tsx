@@ -156,7 +156,7 @@ const Approval = ({ user }: ApprovalProps) => {
         open={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={null}
-        width={700}
+        width={800}
       >
         {detailData && (
           <div>
@@ -177,17 +177,15 @@ const Approval = ({ user }: ApprovalProps) => {
               pagination={false}
               columns={[
                 { title: '物资名称', dataIndex: 'material_name', key: 'material_name' },
-                ...(detailData.type === 'inbound' ? [
-                  { title: '规格', dataIndex: 'specification', key: 'specification' },
-                  { title: '单位', dataIndex: 'unit', key: 'unit' }
-                ] : [
-                  { title: '规格型号', dataIndex: 'specification', key: 'specification' }
-                ]),
+                { title: '规格', dataIndex: 'spec', key: 'spec' },
+                { title: '到期日', dataIndex: 'model', key: 'model' },
+                { title: '单位', dataIndex: 'unit', key: 'unit' },
                 { title: '数量', dataIndex: 'quantity', key: 'quantity' },
                 ...(detailData.type === 'inbound' ? [
                   { title: '单价', dataIndex: 'unit_price', key: 'unit_price', render: (v: number) => `¥${v?.toFixed(2)}` },
                   { title: '总价', dataIndex: 'total_price', key: 'total_price', render: (v: number) => `¥${v?.toFixed(2)}` }
-                ] : [])
+                ] : []),
+                { title: '备注', dataIndex: 'remark', key: 'remark' }
               ]}
             />
           </div>
