@@ -13,7 +13,7 @@ router.get('/', authMiddleware, (req, res) => {
     let inboundSql = `
       SELECT io.id as order_id, io.order_no, io.status, io.reject_reason, io.created_at,
              'inbound' as type, ii.supplier, u.name as submitter_name,
-             ii.material_name, ii.specification, ii.unit, ii.quantity,
+             ii.material_name, ii.spec, ii.model, ii.unit, ii.quantity,
              ii.unit_price, ii.total_price, ii.remark
       FROM inbound_orders io
       JOIN users u ON io.submitter_id = u.id
@@ -48,8 +48,9 @@ router.get('/', authMiddleware, (req, res) => {
     let outboundSql = `
       SELECT oo.id as order_id, oo.order_no, oo.status, oo.reject_reason, oo.created_at,
              'outbound' as type, oo.department, oo.receiver, u.name as submitter_name,
-             oi.material_name, oi.specification, oi.unit, oi.quantity,
-             m.unit_price, (oi.quantity * m.unit_price) as total_price
+             oi.material_name, oi.spec, oi.model, oi.unit, oi.quantity,
+             m.unit_price, (oi.quantity * m.unit_price) as total_price,
+             oi.remark
       FROM outbound_orders oo
       JOIN users u ON oo.submitter_id = u.id
       JOIN outbound_items oi ON oo.id = oi.outbound_order_id
@@ -84,7 +85,7 @@ router.get('/', authMiddleware, (req, res) => {
     let returnSql = `
       SELECT ro.id as order_id, ro.order_no, ro.status, ro.reject_reason, ro.created_at,
              'return' as type, oo.order_no as outbound_order_no, u.name as submitter_name,
-             m.name as material_name, m.specification, m.unit, ri.quantity,
+             m.name as material_name, m.spec, m.model, m.unit, ri.quantity,
              m.unit_price, (ri.quantity * m.unit_price) as total_price
       FROM return_orders ro
       JOIN users u ON ro.submitter_id = u.id
