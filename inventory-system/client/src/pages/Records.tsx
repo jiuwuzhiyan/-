@@ -37,7 +37,7 @@ const printStyle = `
   font-family: 'Microsoft YaHei', 'SimHei', Arial, sans-serif;
   color: #333;
   padding: 30px;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -317,7 +317,8 @@ const Records = ({ user }: RecordsProps) => {
                 <tr>
                   <th style="width: 50px">序号</th>
                   <th>物资名称</th>
-                  <th style="width: 150px">规格型号</th>
+                  <th style="width: 120px">规格</th>
+                  <th style="width: 120px">到期日</th>
                   <th style="width: 80px">单位</th>
                   <th style="width: 100px">数量</th>
                   ${data.type === 'inbound' ? `
@@ -332,7 +333,8 @@ const Records = ({ user }: RecordsProps) => {
                 <tr>
                   <td>${index + 1}</td>
                   <td>${item.material_name || item.name || '-'}</td>
-                  <td>${item.specification || '-'}</td>
+                  <td>${item.spec || '-'}</td>
+                  <td>${item.model || '-'}</td>
                   <td>${item.unit || '-'}</td>
                   <td style="text-align: right">${item.quantity || 0}</td>
                   ${data.type === 'inbound' ? `
@@ -401,7 +403,8 @@ const Records = ({ user }: RecordsProps) => {
       '单据编号': r.order_no,
       '类型': getTypeText(r.type),
       '物资名称': r.material_name,
-      '规格型号': r.specification,
+      '规格': r.spec,
+      '到期日': r.model,
       '单位': r.unit,
       '数量': r.quantity,
       '单价': r.unit_price ? Number(r.unit_price).toFixed(2) : '-',
@@ -452,7 +455,8 @@ const Records = ({ user }: RecordsProps) => {
     { title: '单据编号', dataIndex: 'order_no', key: 'order_no' },
     { title: '类型', dataIndex: 'type', key: 'type', render: (v: string) => getTypeTag(v) },
     { title: '物资名称', dataIndex: 'material_name', key: 'material_name' },
-    { title: '规格型号', dataIndex: 'specification', key: 'specification' },
+    { title: '规格', dataIndex: 'spec', key: 'spec' },
+    { title: '到期日', dataIndex: 'model', key: 'model' },
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 80 },
     { title: '数量', dataIndex: 'quantity', key: 'quantity', width: 100 },
     { title: '单价', dataIndex: 'unit_price', key: 'unit_price', width: 120, render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '-' },
@@ -531,7 +535,7 @@ const Records = ({ user }: RecordsProps) => {
         open={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={null}
-        width={700}
+        width={800}
       >
         {detailData && (
           <div>
@@ -554,7 +558,8 @@ const Records = ({ user }: RecordsProps) => {
               pagination={false}
               columns={[
                 { title: '物资名称', dataIndex: 'material_name', key: 'material_name' },
-                { title: '规格', dataIndex: 'specification', key: 'specification' },
+                { title: '规格', dataIndex: 'spec', key: 'spec' },
+                { title: '到期日', dataIndex: 'model', key: 'model' },
                 { title: '单位', dataIndex: 'unit', key: 'unit' },
                 { title: '数量', dataIndex: 'quantity', key: 'quantity' },
                 { title: '单价', dataIndex: 'unit_price', key: 'unit_price', render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '-' },
