@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Select } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined } from '@ant-design/icons'
+import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Select, Upload, DatePicker } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { returnService, outboundService } from '../services/api'
 import dayjs from 'dayjs'
+import * as XLSX from 'xlsx'
 
 interface ReturnOrdersProps {
   user: any
@@ -11,7 +12,8 @@ interface ReturnOrdersProps {
 interface OrderItem {
   material_id: number
   material_name?: string
-  specification?: string
+  spec?: string
+  model?: string
   quantity: number
 }
 
@@ -80,7 +82,8 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
       const returnItems = (res.data.items || []).map((item: any) => ({
         material_id: item.material_id,
         material_name: item.material_name,
-        specification: item.specification,
+        spec: item.spec,
+        model: item.model,
         quantity: item.quantity
       }))
       setItems(returnItems)
@@ -93,6 +96,95 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
     const newItems = [...items]
     newItems[index] = { ...newItems[index], [field]: value }
     setItems(newItems)
+  }
+
+  const downloadTemplate = () => {
+    if (!selectedOutbound) {
+      message.warning('请先选择关联的出库单')
+      return
+    }
+    
+    const templateData = (selectedOutbound.items || []).map((item: any) => ({
+      '物资名称': item.material_name,
+      '规格': item.spec,
+      '到期日': item.model,
+      '原出库数量': item.quantity,
+      '回库数量': item.quantity
+    }))
+    
+    if (templateData.length === 0) {
+      templateData.push({
+        '物资名称': '示例物资',
+        '规格': '示例规格',
+        '到期日': '示例到期日',
+        '原出库数量': 10,
+        '回库数量': 5
+      })
+    }
+    
+    const ws = XLSX.utils.json_to_sheet(templateData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, '回库导入模板')
+    XLSX.writeFile(wb, '回库导入模板.xlsx')
+    message.success('模板下载成功')
+  }
+
+  const handleImport = (file: any) => {
+    if (!selectedOutbound) {
+      message.warning('请先选择关联的出库单')
+      return false
+    }
+    
+    try {
+      const reader = new FileReader()
+      reader.onload = (e: any) => {
+        const data = new Uint8Array(e.target.result)
+        const workbook = XLSX.read(data, { type: 'array' })
+        const firstSheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[firstSheetName]
+        const jsonData = XLSX.utils.sheet_to_json(worksheet)
+        
+        if (jsonData.length === 0) {
+          message.error('模板为空')
+          return
+        }
+
+        const outboundItems = selectedOutbound.items || []
+        const importedItems = jsonData.map((row: any) => {
+          const materialName = String(row['物资名称'] || '')
+          const outboundItem = outboundItems.find((item: any) => item.material_name === materialName)
+          
+          if (!outboundItem) {
+            message.warning(`物资 "${materialName}" 不在当前出库单中，已跳过`)
+            return null
+          }
+          
+          const returnQuantity = Number(row['回库数量'] || outboundItem.quantity)
+          const maxQuantity = outboundItem.quantity
+          
+          if (returnQuantity > maxQuantity) {
+            message.warning(`物资 "${materialName}" 回库数量(${returnQuantity})超过原出库数量(${maxQuantity})，已调整为${maxQuantity}`)
+          }
+          
+          return {
+            material_id: outboundItem.material_id,
+            material_name: outboundItem.material_name,
+            spec: outboundItem.spec,
+            model: outboundItem.model,
+            quantity: Math.min(returnQuantity, maxQuantity)
+          }
+        }).filter(item => item !== null) as OrderItem[]
+
+        if (importedItems.length > 0) {
+          setItems(importedItems)
+          message.success(`成功导入 ${importedItems.length} 条物资`)
+        }
+      }
+      reader.readAsArrayBuffer(file)
+    } catch (error) {
+      message.error('导入失败')
+    }
+    return false
   }
 
   const handleSubmit = async () => {
@@ -226,9 +318,12 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <h2>回库管理</h2>
         {isMyOrder && (
-          <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
-            新增回库单
-          </Button>
+          <Space>
+            <Button icon={<DownloadOutlined />} onClick={downloadTemplate}>下载模板</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+              新增回库单
+            </Button>
+          </Space>
         )}
       </div>
 
@@ -245,7 +340,7 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => setModalVisible(false)}
-        width={700}
+        width={800}
         okText="保存"
         cancelText="取消"
       >
@@ -269,16 +364,29 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
 
           {selectedOutbound && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 500, marginBottom: 8 }}>回库物资明细</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
+                <span style={{ fontWeight: 500 }}>回库物资明细</span>
+                <Upload beforeUpload={handleImport} showUploadList={false} accept=".xlsx,.xls">
+                  <Button type="link" icon={<UploadOutlined />}>批量导入</Button>
+                </Upload>
+              </div>
               {items.map((item, index) => (
-                <div key={index} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <div key={index} style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                   <Input
+                    placeholder="物资名称"
                     value={item.material_name}
                     disabled
                     style={{ width: 200, background: '#f5f5f5' }}
                   />
                   <Input
-                    value={item.specification}
+                    placeholder="规格"
+                    value={item.spec}
+                    disabled
+                    style={{ width: 150, background: '#f5f5f5' }}
+                  />
+                  <Input
+                    placeholder="到期日"
+                    value={item.model}
                     disabled
                     style={{ width: 150, background: '#f5f5f5' }}
                   />
@@ -322,7 +430,9 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
               pagination={false}
               columns={[
                 { title: '物资名称', dataIndex: 'material_name', key: 'material_name' },
-                { title: '规格', dataIndex: 'specification', key: 'specification' },
+                { title: '规格', dataIndex: 'spec', key: 'spec' },
+                { title: '到期日', dataIndex: 'model', key: 'model' },
+                { title: '单位', dataIndex: 'unit', key: 'unit' },
                 { title: '数量', dataIndex: 'quantity', key: 'quantity' }
               ]}
             />
