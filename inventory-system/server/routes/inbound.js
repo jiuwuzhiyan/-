@@ -101,7 +101,7 @@ router.post('/', authMiddleware, roleMiddleware('business'), (req, res) => {
     console.log('Created order with id:', orderId);
 
     const insertItem = prepare(
-      'INSERT INTO inbound_items (inbound_order_id, material_id, material_name, specification, unit, quantity, unit_price, total_price, supplier, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO inbound_items (inbound_order_id, material_id, material_name, spec, model, unit, quantity, unit_price, total_price, supplier, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     items.forEach((item, index) => {
@@ -109,7 +109,8 @@ router.post('/', authMiddleware, roleMiddleware('business'), (req, res) => {
         orderId, 
         item.material_id || null, 
         item.material_name || '', 
-        item.specification || '', 
+        item.spec || '', 
+        item.model || '', 
         item.unit || '', 
         item.quantity || 0, 
         item.unit_price || 0, 
@@ -152,7 +153,7 @@ router.put('/:id', authMiddleware, roleMiddleware('business'), (req, res) => {
     prepare('DELETE FROM inbound_items WHERE inbound_order_id = ?').run(id);
 
     const insertItem = prepare(
-      'INSERT INTO inbound_items (inbound_order_id, material_id, material_name, specification, unit, quantity, unit_price, total_price, supplier, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO inbound_items (inbound_order_id, material_id, material_name, spec, model, unit, quantity, unit_price, total_price, supplier, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     items.forEach(item => {
@@ -160,7 +161,8 @@ router.put('/:id', authMiddleware, roleMiddleware('business'), (req, res) => {
         id, 
         item.material_id || null, 
         item.material_name || '', 
-        item.specification || '', 
+        item.spec || '', 
+        item.model || '', 
         item.unit || '', 
         item.quantity || 0, 
         item.unit_price || 0, 
