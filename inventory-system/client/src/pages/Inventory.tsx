@@ -39,14 +39,16 @@ const Inventory = ({ user }: InventoryProps) => {
 
   const filteredMaterials = materials.filter(m =>
     m.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    (m.specification || '').toLowerCase().includes(searchText.toLowerCase())
+    (m.spec || '').toLowerCase().includes(searchText.toLowerCase()) ||
+    (m.model || '').toLowerCase().includes(searchText.toLowerCase())
   )
 
   const showEditModal = (record: any) => {
     setEditingMaterial(record)
     form.setFieldsValue({
       name: record.name,
-      specification: record.specification,
+      spec: record.spec,
+      model: record.model,
       unit: record.unit,
       unit_price: record.unit_price
     })
@@ -74,7 +76,8 @@ const Inventory = ({ user }: InventoryProps) => {
   const exportToExcel = () => {
     const exportData = filteredMaterials.map(m => ({
       '物资名称': m.name,
-      '规格型号': m.specification,
+      '规格': m.spec,
+      '到期日': m.model,
       '单位': m.unit,
       '当前库存': m.current_stock,
       '最低库存': m.min_stock,
@@ -93,7 +96,8 @@ const Inventory = ({ user }: InventoryProps) => {
 
   const columns = [
     { title: '物资名称', dataIndex: 'name', key: 'name' },
-    { title: '规格型号', dataIndex: 'specification', key: 'specification' },
+    { title: '规格', dataIndex: 'spec', key: 'spec' },
+    { title: '到期日', dataIndex: 'model', key: 'model' },
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 80 },
     { title: '当前库存', dataIndex: 'current_stock', key: 'current_stock', width: 100,
       render: (v: number, record: any) => (
@@ -129,7 +133,7 @@ const Inventory = ({ user }: InventoryProps) => {
         <h2>库存查询</h2>
         <Space>
           <Input
-            placeholder="搜索物资名称或规格型号"
+            placeholder="搜索物资名称或规格或到期日"
             prefix={<SearchOutlined />}
             style={{ width: 300 }}
             onChange={(e) => handleSearch(e.target.value)}
@@ -158,7 +162,10 @@ const Inventory = ({ user }: InventoryProps) => {
           <Form.Item label="物资名称" name="name" rules={[{ required: true, message: '请输入物资名称' }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="规格型号" name="specification">
+          <Form.Item label="规格" name="spec">
+            <Input />
+          </Form.Item>
+          <Form.Item label="到期日" name="model">
             <Input />
           </Form.Item>
           <Form.Item label="单位" name="unit" rules={[{ required: true, message: '请输入单位' }]}>
