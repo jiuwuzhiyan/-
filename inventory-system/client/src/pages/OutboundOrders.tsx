@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Select } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined } from '@ant-design/icons'
+import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Select, Upload } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { outboundService, materialService } from '../services/api'
 import dayjs from 'dayjs'
+import * as XLSX from 'xlsx'
 
 interface OutboundOrdersProps {
   user: any
@@ -11,9 +12,11 @@ interface OutboundOrdersProps {
 interface OrderItem {
   material_id: number
   material_name?: string
-  specification?: string
+  spec?: string
+  model?: string
   unit?: string
   quantity: number
+  remark?: string
 }
 
 const OutboundOrders = ({ user }: OutboundOrdersProps) => {
@@ -52,7 +55,7 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
 
   const showAddModal = () => {
     setEditingOrder(null)
-    setItems([{ material_id: 0, quantity: 1 }])
+    setItems([{ material_id: 0, quantity: 1, remark: '' }])
     form.resetFields()
     setModalVisible(true)
   }
@@ -72,6 +75,68 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
     }
   }
 
+  const downloadTemplate = () => {
+    const templateData = [
+      {
+        '物资名称': '示例物资',
+        '数量': 5,
+        '备注': '示例备注'
+      }
+    ]
+    const ws = XLSX.utils.json_to_sheet(templateData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, '出库导入模板')
+    XLSX.writeFile(wb, '出库导入模板.xlsx')
+    message.success('模板下载成功')
+  }
+
+  const handleImport = (file: any) => {
+    try {
+      const reader = new FileReader()
+      reader.onload = (e: any) => {
+        const data = new Uint8Array(e.target.result)
+        const workbook = XLSX.read(data, { type: 'array' })
+        const firstSheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[firstSheetName]
+        const jsonData = XLSX.utils.sheet_to_json(worksheet)
+        
+        if (jsonData.length === 0) {
+          message.error('模板为空')
+          return
+        }
+
+        const importedItems = jsonData.map((row: any) => {
+          const materialName = String(row['物资名称'] || '')
+          const material = materials.find(m => m.name === materialName)
+          
+          if (!material) {
+            message.warning(`物资 "${materialName}" 未找到，已跳过`)
+            return null
+          }
+          
+          return {
+            material_id: material.id,
+            material_name: material.name,
+            spec: material.spec,
+            model: material.model,
+            unit: material.unit,
+            quantity: Number(row['数量'] || 1),
+            remark: String(row['备注'] || '')
+          }
+        }).filter(item => item !== null) as OrderItem[]
+
+        if (importedItems.length > 0) {
+          setItems(importedItems)
+          message.success(`成功导入 ${importedItems.length} 条物资`)
+        }
+      }
+      reader.readAsArrayBuffer(file)
+    } catch (error) {
+      message.error('导入失败')
+    }
+    return false
+  }
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
@@ -83,7 +148,8 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
         receiver: values.receiver,
         items: items.map(item => ({
           material_id: item.material_id,
-          quantity: item.quantity
+          quantity: item.quantity,
+          remark: item.remark || ''
         }))
       }
 
@@ -134,7 +200,8 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
           ...newItems[index],
           material_id: materialId,
           material_name: material.name,
-          specification: material.specification,
+          spec: material.spec,
+          model: material.model,
           unit: material.unit
         }
         setItems(newItems)
@@ -149,7 +216,7 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
   }
 
   const addItem = () => {
-    setItems([...items, { material_id: 0, quantity: 1 }])
+    setItems([...items, { material_id: 0, quantity: 1, remark: '' }])
   }
 
   const removeItem = (index: number) => {
@@ -203,11 +270,11 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
     { title: '物资明细', dataIndex: 'materialNames', key: 'materialNames', ellipsis: true },
     { title: '数量', dataIndex: 'totalQty', key: 'totalQty' },
     { title: '状态', dataIndex: 'status', key: 'status', render: (v: string, record: any) => (
-        <Space direction="vertical" size={0}>
-          {getStatusTag(v)}
-          {getPendingApprover(record)}
-        </Space>
-      ) },
+      <Space direction="vertical" size={0}>
+        {getStatusTag(v)}
+        {getPendingApprover(record)}
+      </Space>
+    ) },
     { title: '驳回原因', dataIndex: 'reject_reason', key: 'reject_reason', ellipsis: true },
     { title: '提交时间', dataIndex: 'created_at', key: 'created_at', render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-' },
     {
@@ -241,9 +308,12 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <h2>出库管理</h2>
         {isMyOrder && (
-          <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
-            新增出库单
-          </Button>
+          <Space>
+            <Button icon={<DownloadOutlined />} onClick={downloadTemplate}>下载模板</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+              新增出库单
+            </Button>
+          </Space>
         )}
       </div>
 
@@ -275,14 +345,19 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
               <span style={{ fontWeight: 500 }}>物资明细</span>
-              <Button type="link" onClick={addItem}>+ 添加物资</Button>
+              <Space>
+                <Upload beforeUpload={handleImport} showUploadList={false} accept=".xlsx,.xls">
+                  <Button type="link" icon={<UploadOutlined />}>批量导入</Button>
+                </Upload>
+                <Button type="link" onClick={addItem}>+ 添加物资</Button>
+              </Space>
             </div>
 
             {items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', gap: 8, marginBottom: 12, padding: 8, background: '#f9f9f9', borderRadius: 4, alignItems: 'flex-start' }}>
-                <div style={{ flex: 1.5 }}>
+              <div key={index} style={{ display: 'flex', gap: 8, marginBottom: 12, padding: 8, background: '#f9f9f9', borderRadius: 4, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px', minWidth: 180 }}>
                   <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>选择物资*</label>
                   <Select
                     placeholder="请选择物资"
@@ -292,7 +367,7 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
                   >
                     {materials.map(m => (
                       <Select.Option key={m.id} value={m.id}>
-                        {m.name} ({m.specification}) - 库存: {m.current_stock} {m.unit}
+                        {m.name} ({m.spec} {m.model}) - 库存: {m.current_stock} {m.unit}
                       </Select.Option>
                     ))}
                   </Select>
@@ -305,6 +380,14 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
                     value={item.quantity}
                     onChange={(value) => updateItem(index, 'quantity', value)}
                     min={1}
+                  />
+                </div>
+                <div style={{ flex: '1 1 150px', minWidth: 120 }}>
+                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>备注</label>
+                  <Input
+                    placeholder="备注"
+                    value={item.remark || ''}
+                    onChange={(e) => updateItem(index, 'remark', e.target.value)}
                   />
                 </div>
                 {items.length > 1 && (
@@ -342,9 +425,11 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
               pagination={false}
               columns={[
                 { title: '物资名称', dataIndex: 'material_name', key: 'material_name' },
-                { title: '规格', dataIndex: 'specification', key: 'specification' },
+                { title: '规格', dataIndex: 'spec', key: 'spec' },
+                { title: '到期日', dataIndex: 'model', key: 'model' },
                 { title: '单位', dataIndex: 'unit', key: 'unit' },
-                { title: '数量', dataIndex: 'quantity', key: 'quantity' }
+                { title: '数量', dataIndex: 'quantity', key: 'quantity' },
+                { title: '备注', dataIndex: 'remark', key: 'remark' }
               ]}
             />
           </div>
