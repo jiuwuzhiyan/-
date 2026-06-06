@@ -27,14 +27,14 @@ router.get('/', authMiddleware, (req, res) => {
 // 创建物资
 router.post('/', authMiddleware, roleMiddleware('superadmin'), (req, res) => {
   try {
-    const { name, specification, unit, min_stock, unit_price } = req.body
+    const { name, spec, model, unit, min_stock, unit_price } = req.body
 
     if (!name || !unit) {
       return res.json({ code: 400, msg: '物资名称和单位不能为空' })
     }
 
-    const result = prepare('INSERT INTO materials (name, specification, unit, min_stock, unit_price) VALUES (?, ?, ?, ?, ?)').run(
-      name, specification || '', unit, min_stock || 0, unit_price || 0
+    const result = prepare('INSERT INTO materials (name, spec, model, unit, min_stock, unit_price) VALUES (?, ?, ?, ?, ?, ?)').run(
+      name, spec || '', model || '', unit, min_stock || 0, unit_price || 0
     )
 
     res.json({ code: 200, msg: '创建成功', data: { id: result.lastInsertRowid } })
@@ -48,15 +48,15 @@ router.post('/', authMiddleware, roleMiddleware('superadmin'), (req, res) => {
 router.put('/:id', authMiddleware, roleMiddleware('superadmin'), (req, res) => {
   try {
     const { id } = req.params
-    const { name, specification, unit, min_stock, unit_price } = req.body
+    const { name, spec, model, unit, min_stock, unit_price } = req.body
 
     const material = prepare('SELECT * FROM materials WHERE id = ?').get(id)
     if (!material) {
       return res.json({ code: 404, msg: '物资不存在' })
     }
 
-    prepare('UPDATE materials SET name = ?, specification = ?, unit = ?, min_stock = ?, unit_price = ? WHERE id = ?').run(
-      name, specification || '', unit, min_stock || 0, unit_price || 0, id
+    prepare('UPDATE materials SET name = ?, spec = ?, model = ?, unit = ?, min_stock = ?, unit_price = ? WHERE id = ?').run(
+      name, spec || '', model || '', unit, min_stock || 0, unit_price || 0, id
     )
 
     res.json({ code: 200, msg: '更新成功' })
