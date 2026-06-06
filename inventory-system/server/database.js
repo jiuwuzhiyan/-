@@ -47,7 +47,8 @@ export async function initDatabase() {
     CREATE TABLE IF NOT EXISTS materials (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      specification TEXT,
+      spec TEXT,
+      model TEXT,
       unit TEXT NOT NULL,
       current_stock INTEGER NOT NULL DEFAULT 0,
       min_stock INTEGER DEFAULT 0,
@@ -85,7 +86,8 @@ export async function initDatabase() {
       inbound_order_id INTEGER NOT NULL,
       material_id INTEGER,
       material_name TEXT NOT NULL,
-      specification TEXT,
+      spec TEXT,
+      model TEXT,
       unit TEXT,
       quantity INTEGER NOT NULL,
       unit_price DECIMAL(10,2) NOT NULL,
@@ -118,16 +120,18 @@ export async function initDatabase() {
     )
   `);
 
-  // 创建出库单明细表（修改为支持自定义物资）
+  // 创建出库单明细表
   db.run(`
     CREATE TABLE IF NOT EXISTS outbound_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       outbound_order_id INTEGER NOT NULL,
       material_id INTEGER,
       material_name TEXT NOT NULL,
-      specification TEXT,
+      spec TEXT,
+      model TEXT,
       unit TEXT,
       quantity INTEGER NOT NULL,
+      remark TEXT,
       FOREIGN KEY (outbound_order_id) REFERENCES outbound_orders(id) ON DELETE CASCADE,
       FOREIGN KEY (material_id) REFERENCES materials(id)
     )
@@ -160,6 +164,8 @@ export async function initDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       return_order_id INTEGER NOT NULL,
       material_id INTEGER NOT NULL,
+      spec TEXT,
+      model TEXT,
       quantity INTEGER NOT NULL,
       FOREIGN KEY (return_order_id) REFERENCES return_orders(id) ON DELETE CASCADE,
       FOREIGN KEY (material_id) REFERENCES materials(id)
@@ -180,6 +186,23 @@ export async function initDatabase() {
       FOREIGN KEY (operator_id) REFERENCES users(id)
     )
   `);
+
+  // 删除旧的 expiry_date 字段（如果存在）
+  try {
+    db.run("ALTER TABLE inbound_items DROP COLUMN expiry_date");
+  } catch (e) {
+    // 字段不存在，忽略
+  }
+  try {
+    db.run("ALTER TABLE outbound_items DROP COLUMN expiry_date");
+  } catch (e) {
+    // 字段不存在，忽略
+  }
+  try {
+    db.run("ALTER TABLE return_items DROP COLUMN expiry_date");
+  } catch (e) {
+    // 字段不存在，忽略
+  }
 
   // 初始化超级管理员账号
   const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
@@ -213,14 +236,14 @@ export async function initDatabase() {
     
     // 初始化测试物资
     const testMaterials = [
-      { name: '笔记本电脑', specification: 'ThinkPad X1 Carbon', unit: '台', current_stock: 10, min_stock: 5 },
-      { name: '无线鼠标', specification: '罗技 MX Master 3', unit: '个', current_stock: 50, min_stock: 20 },
-      { name: '机械键盘', specification: 'Cherry MX Board', unit: '把', current_stock: 30, min_stock: 10 }
+      { name: '笔记本电脑', spec: 'ThinkPad', model: 'X1 Carbon', unit: '台', current_stock: 10, min_stock: 5 },
+      { name: '无线鼠标', spec: '罗技', model: 'MX Master 3', unit: '个', current_stock: 50, min_stock: 20 },
+      { name: '机械键盘', spec: 'Cherry', model: 'MX Board', unit: '把', current_stock: 30, min_stock: 10 }
     ];
     
     testMaterials.forEach(mat => {
-      db.run('INSERT INTO materials (name, specification, unit, current_stock, min_stock) VALUES (?, ?, ?, ?, ?)', [
-        mat.name, mat.specification, mat.unit, mat.current_stock, mat.min_stock
+      db.run('INSERT INTO materials (name, spec, model, unit, current_stock, min_stock) VALUES (?, ?, ?, ?, ?, ?)', [
+        mat.name, mat.spec, mat.model, mat.unit, mat.current_stock, mat.min_stock
       ]);
     });
     console.log('测试物资已创建');
