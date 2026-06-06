@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Upload, Tooltip } from 'antd'
+import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Upload } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { inboundService } from '../services/api'
 import dayjs from 'dayjs'
@@ -11,7 +11,8 @@ interface InboundOrdersProps {
 
 interface OrderItem {
   material_name: string
-  specification?: string
+  spec?: string
+  model?: string
   unit?: string
   quantity: number
   unit_price: number
@@ -51,7 +52,7 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
 
   const showAddModal = () => {
     setEditingOrder(null)
-    setItems([{ material_name: '', specification: '', unit: '', quantity: 1, unit_price: 0, total_price: 0, supplier: '', remark: '' }])
+    setItems([{ material_name: '', spec: '', model: '', unit: '', quantity: 1, unit_price: 0, total_price: 0, supplier: '', remark: '' }])
     form.resetFields()
     setModalVisible(true)
   }
@@ -72,7 +73,8 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
     const templateData = [
       {
         '物资名称': '示例物资',
-        '规格型号': '示例规格',
+        '规格': '示例规格',
+        '到期日': '示例到期日',
         '单位': '个',
         '数量': 10,
         '单价': 100,
@@ -107,7 +109,8 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
           const unitPrice = Number(row['单价'] || 0)
           return {
             material_name: String(row['物资名称'] || ''),
-            specification: String(row['规格型号'] || ''),
+            spec: String(row['规格'] || ''),
+            model: String(row['到期日'] || ''),
             unit: String(row['单位'] || ''),
             quantity: quantity,
             unit_price: unitPrice,
@@ -139,7 +142,8 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
         total_amount: totalAmount,
         items: items.map(item => ({
           material_name: item.material_name,
-          specification: item.specification,
+          spec: item.spec,
+          model: item.model,
           unit: item.unit,
           quantity: item.quantity,
           unit_price: item.unit_price,
@@ -198,7 +202,7 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
   }
 
   const addItem = () => {
-    setItems([...items, { material_name: '', specification: '', unit: '', quantity: 1, unit_price: 0, total_price: 0, supplier: '', remark: '' }])
+    setItems([...items, { material_name: '', spec: '', model: '', unit: '', quantity: 1, unit_price: 0, total_price: 0, supplier: '', remark: '' }])
   }
 
   const removeItem = (index: number) => {
@@ -253,11 +257,11 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
     { title: '单价', dataIndex: 'avgPrice', key: 'avgPrice', render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '-' },
     { title: '总金额', dataIndex: 'total_amount', key: 'total_amount', render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '¥0.00' },
     { title: '状态', dataIndex: 'status', key: 'status', render: (v: string, record: any) => (
-        <Space direction="vertical" size={0}>
-          {getStatusTag(v)}
-          {getPendingApprover(record)}
-        </Space>
-      ) },
+      <Space direction="vertical" size={0}>
+        {getStatusTag(v)}
+        {getPendingApprover(record)}
+      </Space>
+    ) },
     { title: '驳回原因', dataIndex: 'reject_reason', key: 'reject_reason', ellipsis: true },
     { title: '提交时间', dataIndex: 'created_at', key: 'created_at', render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-' },
     {
@@ -343,8 +347,16 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
                   <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>规格</label>
                   <Input
                     placeholder="规格"
-                    value={item.specification}
-                    onChange={(e) => updateItem(index, 'specification', e.target.value)}
+                    value={item.spec}
+                    onChange={(e) => updateItem(index, 'spec', e.target.value)}
+                  />
+                </div>
+                <div style={{ flex: '1 1 100px', minWidth: 80 }}>
+                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>到期日</label>
+                  <Input
+                    placeholder="到期日"
+                    value={item.model}
+                    onChange={(e) => updateItem(index, 'model', e.target.value)}
                   />
                 </div>
                 <div style={{ width: 70 }}>
@@ -437,7 +449,8 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
               pagination={false}
               columns={[
                 { title: '物资名称', dataIndex: 'material_name', key: 'material_name' },
-                { title: '规格', dataIndex: 'specification', key: 'specification' },
+                { title: '规格', dataIndex: 'spec', key: 'spec' },
+                { title: '到期日', dataIndex: 'model', key: 'model' },
                 { title: '单位', dataIndex: 'unit', key: 'unit' },
                 { title: '数量', dataIndex: 'quantity', key: 'quantity' },
                 { title: '单价', dataIndex: 'unit_price', key: 'unit_price', render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '¥0.00' },
