@@ -108,8 +108,8 @@ router.post('/', authMiddleware, roleMiddleware('business'), (req, res) => {
     console.log('创建出库单id:', orderId)
 
     const insertItem = prepare(`
-      INSERT INTO outbound_items (outbound_order_id, material_id, material_name, specification, unit, quantity)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO outbound_items (outbound_order_id, material_id, material_name, spec, model, unit, quantity, remark)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
     items.forEach(item => {
@@ -118,9 +118,11 @@ router.post('/', authMiddleware, roleMiddleware('business'), (req, res) => {
         orderId, 
         item.material_id, 
         material.name, 
-        material.specification || '', 
+        material.spec || '', 
+        material.model || '', 
         material.unit || '', 
-        item.quantity
+        item.quantity,
+        item.remark || ''
       )
     })
 
@@ -166,8 +168,8 @@ router.put('/:id', authMiddleware, roleMiddleware('business'), (req, res) => {
     prepare('DELETE FROM outbound_items WHERE outbound_order_id = ?').run(id)
 
     const insertItem = prepare(`
-      INSERT INTO outbound_items (outbound_order_id, material_id, material_name, specification, unit, quantity)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO outbound_items (outbound_order_id, material_id, material_name, spec, model, unit, quantity, remark)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
     items.forEach(item => {
@@ -176,9 +178,11 @@ router.put('/:id', authMiddleware, roleMiddleware('business'), (req, res) => {
         id, 
         item.material_id, 
         material.name, 
-        material.specification || '', 
+        material.spec || '', 
+        material.model || '', 
         material.unit || '', 
-        item.quantity
+        item.quantity,
+        item.remark || ''
       )
     })
 
