@@ -1,4 +1,4 @@
-# 企业出入库管理系统
+# 唐山中骏世界城库存系统
 
 一个支持多角色权限、并行审批流程的企业物资出入库管理系统，实现入库、出库、回库全流程数字化管理。
 
@@ -33,12 +33,20 @@ inventory-system/
 │   ├── database.js         # 数据库初始化
 │   └── server.js           # 服务入口
 ├── package.json            # 根目录配置
+├── start.bat             # Windows一键启动脚本
 └── README.md               # 项目说明
 ```
 
 ## 快速开始
 
 ### 1. 安装依赖
+
+```bash
+# 一键安装所有依赖
+npm run install:all
+```
+
+或者分步安装：
 
 ```bash
 # 安装根目录依赖
@@ -55,21 +63,29 @@ npm install
 
 ### 2. 启动项目
 
+#### 方式一：使用批处理文件（Windows）
+
+直接双击项目根目录下的 `start.bat` 文件即可一键启动前后端服务。
+
+#### 方式二：使用 npm 命令（推荐）
+
 ```bash
-# 返回根目录
-cd ..
-
-# 启动后端（端口 3000）
-npm run dev:server
-
-# 启动前端（端口 5173）
-npm run dev:client
+# 在项目根目录运行
+npm run dev
 ```
 
-或使用一键启动：
+这将同时启动：
+- 后端服务（端口 3000）
+- 前端服务（端口 5173）
+
+#### 方式三：分别启动
 
 ```bash
-npm run dev
+# 启动后端
+npm run dev:server
+
+# 启动前端（新开终端
+npm run dev:client
 ```
 
 ### 3. 访问系统
