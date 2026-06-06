@@ -1,0 +1,23 @@
+{
+  "name": "inventory-system",
+  "version": "1.0.0",
+  "description": "唐山中骏世界城库存系统",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "start": "npm run start:server",
+    "start:server": "cd server && npm start"
+  },
+  "keywords": [
+    "inventory",
+    "management",
+    "enterprise"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}
