@@ -1,0 +1,240 @@
+{
+  "rootNodeId": "n0",
+  "version": 2,
+  "successCriteria": [
+    { "id": "sc1", "text": "能够成功从抖音平台获取指定商圈的团购店铺信息" },
+    { "id": "sc2", "text": "能够成功从美团平台获取指定商圈的团购店铺信息" },
+    { "id": "sc3", "text": "能够获取店铺的套餐内容、价格、销量、评分数据" },
+    { "id": "sc4", "text": "能够获取用户评价数据" },
+    { "id": "sc5", "text": "提供友好的网页界面供用户操作" },
+    { "id": "sc6", "text": "支持手动触发数据获取" },
+    { "id": "sc7", "text": "支持定时自动获取数据" },
+    { "id": "sc8", "text": "支持将数据导出为Excel/CSV格式" },
+    { "id": "sc9", "text": "支持将数据存储到数据库" },
+    { "id": "sc10", "text": "支持将数据导出为JSON格式" }
+  ],
+  "nodes": [
+    {
+      "id": "n0",
+      "parentId": null,
+      "type": "requirement",
+      "title": "团购数据采集工具",
+      "acceptance": "当用户启动工具并选择平台和商圈时，系统应能获取并展示团购店铺、套餐及相关数据。",
+      "coversCriteria": ["sc1", "sc2", "sc3", "sc4", "sc5"],
+      "evidenceRefs": ["nE1"]
+    },
+    {
+      "id": "n1",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "抖音平台数据采集",
+      "acceptance": "当用户选择抖音平台并输入商圈信息时，系统应能采集该商圈的团购店铺数据。",
+      "coversCriteria": ["sc1"],
+      "evidenceRefs": ["nE1", "nE2"]
+    },
+    {
+      "id": "n2",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "美团平台数据采集",
+      "acceptance": "当用户选择美团平台并输入商圈信息时，系统应能采集该商圈的团购店铺数据。",
+      "coversCriteria": ["sc2"],
+      "evidenceRefs": ["nE1", "nE2"]
+    },
+    {
+      "id": "n3",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "详细数据采集",
+      "acceptance": "当用户选择要采集的店铺时，系统应能获取该店铺的套餐内容、价格、销量、评分和用户评价。",
+      "coversCriteria": ["sc3", "sc4"],
+      "evidenceRefs": ["nE1", "nE2"]
+    },
+    {
+      "id": "n4",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "数据获取触发方式",
+      "acceptance": "当用户需要获取数据时，系统应支持手动触发和定时自动触发两种方式。",
+      "coversCriteria": ["sc6", "sc7"],
+      "evidenceRefs": ["nE1"]
+    },
+    {
+      "id": "n5",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "数据存储与导出",
+      "acceptance": "当数据采集完成后，系统应支持将数据存储到数据库，并可导出为Excel/CSV或JSON格式。",
+      "coversCriteria": ["sc8", "sc9", "sc10"],
+      "evidenceRefs": ["nE1"]
+    },
+    {
+      "id": "n6",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "用户界面",
+      "acceptance": "当用户访问工具时，系统应提供直观友好的网页界面供操作。",
+      "coversCriteria": ["sc5"],
+      "evidenceRefs": ["nE1"]
+    },
+    {
+      "id": "n7",
+      "parentId": "n1",
+      "type": "design",
+      "title": "抖音数据采集模块",
+      "notes": "使用Playwright进行浏览器自动化，模拟用户操作访问抖音团购页面，解析店铺和套餐数据。",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n8",
+      "parentId": "n2",
+      "type": "design",
+      "title": "美团数据采集模块",
+      "notes": "使用Playwright进行浏览器自动化，模拟用户操作访问美团团购页面，解析店铺和套餐数据。",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n9",
+      "parentId": "n3",
+      "type": "design",
+      "title": "详细数据解析模块",
+      "notes": "解析页面DOM结构，提取套餐详情、价格、销量、评分字段，滚动加载用户评价并解析。",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n10",
+      "parentId": "n4",
+      "type": "design",
+      "title": "任务调度模块",
+      "notes": "使用node-cron实现定时任务调度，支持配置采集间隔，手动触发使用队列管理。",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n11",
+      "parentId": "n5",
+      "type": "design",
+      "title": "数据存储与导出模块",
+      "notes": "使用SQLite作为数据库存储，使用exceljs实现Excel/CSV导出，JSON直接序列化。",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n12",
+      "parentId": "n6",
+      "type": "design",
+      "title": "前端界面模块",
+      "notes": "使用React构建单页应用，包含平台选择、商圈输入、任务管理、数据展示、导出功能等页面。",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n13",
+      "parentId": "n7",
+      "type": "task",
+      "title": "实现抖音页面自动化访问",
+      "verify": "测试Playwright能正常打开抖音团购页面"
+    },
+    {
+      "id": "n14",
+      "parentId": "n7",
+      "type": "task",
+      "title": "实现抖音店铺列表解析",
+      "verify": "能正确提取店铺名称、地址、评分等基本信息"
+    },
+    {
+      "id": "n15",
+      "parentId": "n8",
+      "type": "task",
+      "title": "实现美团页面自动化访问",
+      "verify": "测试Playwright能正常打开美团团购页面"
+    },
+    {
+      "id": "n16",
+      "parentId": "n8",
+      "type": "task",
+      "title": "实现美团店铺列表解析",
+      "verify": "能正确提取店铺名称、地址、评分等基本信息"
+    },
+    {
+      "id": "n17",
+      "parentId": "n9",
+      "type": "task",
+      "title": "实现套餐数据解析",
+      "verify": "能提取套餐名称、描述、价格、销量"
+    },
+    {
+      "id": "n18",
+      "parentId": "n9",
+      "type": "task",
+      "title": "实现用户评价解析",
+      "verify": "能滚动加载并提取用户评论内容、评分、时间"
+    },
+    {
+      "id": "n19",
+      "parentId": "n10",
+      "type": "task",
+      "title": "实现手动触发功能",
+      "verify": "点击采集按钮能启动数据采集任务"
+    },
+    {
+      "id": "n20",
+      "parentId": "n10",
+      "type": "task",
+      "title": "实现定时任务功能",
+      "verify": "配置定时任务后能按计划自动执行采集"
+    },
+    {
+      "id": "n21",
+      "parentId": "n11",
+      "type": "task",
+      "title": "实现数据库存储",
+      "verify": "采集的数据能正确保存到SQLite数据库"
+    },
+    {
+      "id": "n22",
+      "parentId": "n11",
+      "type": "task",
+      "title": "实现Excel/CSV导出",
+      "verify": "能将数据导出为Excel或CSV文件"
+    },
+    {
+      "id": "n23",
+      "parentId": "n11",
+      "type": "task",
+      "title": "实现JSON导出",
+      "verify": "能将数据导出为JSON文件"
+    },
+    {
+      "id": "n24",
+      "parentId": "n12",
+      "type": "task",
+      "title": "实现前端主界面",
+      "verify": "用户能看到平台选择、商圈输入、任务管理等界面"
+    },
+    {
+      "id": "n25",
+      "parentId": "n12",
+      "type": "task",
+      "title": "实现数据展示页面",
+      "verify": "采集的数据能在前端正确展示"
+    },
+    {
+      "id": "nE1",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "用户需求澄清",
+      "source": "clarified_brief:successCriteria"
+    },
+    {
+      "id": "nE2",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "技术路线选择",
+      "source": "route_options:routes[1]"
+    }
+  ],
+  "provenance": {
+    "generationSource": "llm",
+    "promptId": "group-buy-scraper-v1",
+    "model": "why-buddy-v2",
+    "fingerprint": "gb-scraper-20260607"
+  }
+}

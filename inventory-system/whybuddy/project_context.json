@@ -1,0 +1,35 @@
+{
+  "projectName": "唐山中骏世界城库存系统",
+  "goal": "重新规划库存管理系统，采用深色科技风格UI，实现专业、大气、高级感的全新界面",
+  "summary": "对现有库存管理系统进行全套重新设计，保留核心出入库业务功能，优化用户界面为深色科技风格，提升系统整体质感和用户体验",
+  "sourceType": "existing_repository",
+  "sourcePath": "D:\\出入库\\inventory-system",
+  "evidence": [
+    {
+      "type": "readme",
+      "source": "D:\\出入库\\inventory-system\\README.md",
+      "keyContent": [
+        "多角色权限管理：业务/财务/行政/系统管理员四种角色",
+        "并行审批流程：财务和行政同时审批",
+        "入库/出库/回库全流程覆盖",
+        "技术栈：React 18 + Ant Design 5.x + Vite + TypeScript"
+      ]
+    },
+    {
+      "type": "file_structure",
+      "source": "D:\\出入库\\inventory-system",
+      "keyContent": [
+        "client/src/pages: Dashboard, Inventory, InboundOrders, OutboundOrders, ReturnOrders, Approval, Records, Users",
+        "server/routes: auth, users, materials, inbound, outbound, return, approval, records",
+        "server/database.js: SQLite 3数据库"
+      ]
+    }
+  ],
+  "constraints": {
+    "techStack": "React 18 + Ant Design 5.x + Vite + TypeScript (前端), Node.js + Express.js (后端), SQLite 3",
+    "dataCompatibility": "需保持与现有数据库结构兼容或提供迁移方案",
+    "coreFunctions": "出入库管理、审批流程、库存查询、用户权限"
+  },
+  "grounding.repoAvailable": true,
+  "grounding.timestamp": "2026-06-07T22:47:00+08:00"
+}

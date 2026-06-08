@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Select, Upload } from 'antd'
+import { Table, Modal, Form, Input, InputNumber, message, Space, Select, Upload, Popconfirm } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { outboundService, materialService } from '../services/api'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
+import { GlassCard, GradientButton } from '../components'
+import './Orders.css'
 
 interface OutboundOrdersProps {
   user: any
@@ -33,12 +35,10 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
   const loadData = async () => {
     setLoading(true)
     try {
-      console.log('加载出库单列表')
       const [ordersRes, materialsRes] = await Promise.all([
         outboundService.list(),
         materialService.list()
       ])
-      console.log('出库单数据:', ordersRes.data)
       setOrders(ordersRes.data || [])
       setMaterials(materialsRes.data || [])
     } catch (error) {
@@ -141,8 +141,6 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
     try {
       const values = await form.validateFields()
 
-      console.log('提交出库单:', { department: values.department, receiver: values.receiver, items })
-
       const orderData = {
         department: values.department,
         receiver: values.receiver,
@@ -198,7 +196,7 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
         const newItems = [...items]
         newItems[index] = {
           ...newItems[index],
-          material_id: materialId,
+          material_id: material.id,
           material_name: material.name,
           spec: material.spec,
           model: material.model,
@@ -236,13 +234,14 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
   }
 
   const getStatusTag = (status: string) => {
-    const map: Record<string, { color: string; text: string }> = {
-      draft: { color: 'default', text: '草稿' },
-      pending: { color: 'orange', text: '待审批' },
-      approved: { color: 'green', text: '已通过' },
-      rejected: { color: 'red', text: '已驳回' }
+    const map: Record<string, { className: string; text: string }> = {
+      draft: { className: 'status-tag draft', text: '草稿' },
+      pending: { className: 'status-tag pending', text: '待审批' },
+      approved: { className: 'status-tag approved', text: '已通过' },
+      rejected: { className: 'status-tag rejected', text: '已驳回' }
     }
-    return <Tag color={map[status]?.color}>{map[status]?.text || status}</Tag>
+    const item = map[status] || { className: 'status-tag', text: status }
+    return <span className={item.className}>{item.text}</span>
   }
 
   const getPendingApprover = (record: any) => {
@@ -252,48 +251,69 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
     if (!record.admin_approver_id) pending.push('行政')
     if (pending.length === 0) return null
     return (
-      <div>
-        <span style={{ color: '#faad14' }}>待审批：{pending.join('、')}</span>
-        <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
-          {record.finance_approver_id ? <span style={{ color: '#52c41a' }}>✓ 财务已审批</span> : ''}
-          {record.finance_approver_id && !record.admin_approver_id ? ' ' : ''}
-          {record.admin_approver_id ? <span style={{ color: '#52c41a' }}>✓ 行政已审批</span> : ''}
+      <div className="approval-progress">
+        <span className="pending-text">待审批：{pending.join('、')}</span>
+        <div className="approval-status">
+          {record.finance_approver_id && <span className="approval-finished">✓ 财务已审批</span>}
+          {record.finance_approver_id && !record.admin_approver_id && <span className="separator"> </span>}
+          {record.admin_approver_id && <span className="approval-finished">✓ 行政已审批</span>}
         </div>
       </div>
     )
   }
 
   const columns = [
-    { title: '单据编号', dataIndex: 'order_no', key: 'order_no' },
+    { 
+      title: '单据编号', 
+      dataIndex: 'order_no', 
+      key: 'order_no',
+      render: (v: string) => <span className="order-no">{v}</span>
+    },
     { title: '领用部门', dataIndex: 'department', key: 'department' },
     { title: '领用人', dataIndex: 'receiver', key: 'receiver' },
     { title: '物资明细', dataIndex: 'materialNames', key: 'materialNames', ellipsis: true },
     { title: '数量', dataIndex: 'totalQty', key: 'totalQty' },
-    { title: '状态', dataIndex: 'status', key: 'status', render: (v: string, record: any) => (
-      <Space direction="vertical" size={0}>
-        {getStatusTag(v)}
-        {getPendingApprover(record)}
-      </Space>
-    ) },
+    { 
+      title: '状态', 
+      dataIndex: 'status', 
+      key: 'status', 
+      render: (v: string, record: any) => (
+        <Space direction="vertical" size={0}>
+          {getStatusTag(v)}
+          {getPendingApprover(record)}
+        </Space>
+      ) 
+    },
     { title: '驳回原因', dataIndex: 'reject_reason', key: 'reject_reason', ellipsis: true },
-    { title: '提交时间', dataIndex: 'created_at', key: 'created_at', render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-' },
+    { 
+      title: '提交时间', 
+      dataIndex: 'created_at', 
+      key: 'created_at', 
+      render: (v: string) => <span className="time-text">{v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-'}</span> 
+    },
     {
       title: '操作',
       key: 'action',
       render: (_: any, record: any) => (
         <Space>
-          <a onClick={() => viewDetail(record)}>详情</a>
+          <a onClick={() => viewDetail(record)} className="action-link">详情</a>
           {(record.status === 'draft' || record.status === 'rejected') && user.role === 'business' && (
-            <a onClick={() => showEditModal(record)}><EditOutlined /> 修改</a>
+            <a onClick={() => showEditModal(record)} className="action-link">
+              <EditOutlined /> 修改
+            </a>
           )}
           {(record.status === 'draft' || record.status === 'rejected') && user.role === 'business' && (
             <Popconfirm title="确定提交此单据？" onConfirm={() => handleSubmitOrder(record.id)}>
-              <a><SendOutlined /> 提交</a>
+              <a className="action-link submit">
+                <SendOutlined /> 提交
+              </a>
             </Popconfirm>
           )}
           {record.status === 'draft' && user.role === 'business' && (
             <Popconfirm title="确定删除？" onConfirm={() => handleDelete(record.id)}>
-              <a style={{ color: '#ff4d4f' }}><DeleteOutlined /> 删除</a>
+              <a className="action-link delete">
+                <DeleteOutlined /> 删除
+              </a>
             </Popconfirm>
           )}
         </Space>
@@ -304,35 +324,41 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
   const isMyOrder = user.role === 'business'
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h2>出库管理</h2>
+    <div className="page-container">
+      <div className="page-header animate-fade-in">
+        <h1 className="page-title">出库管理</h1>
         {isMyOrder && (
           <Space>
-            <Button icon={<DownloadOutlined />} onClick={downloadTemplate}>下载模板</Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+            <GradientButton icon={<DownloadOutlined />} onClick={downloadTemplate} gradient="purple">
+              下载模板
+            </GradientButton>
+            <GradientButton icon={<PlusOutlined />} onClick={showAddModal} gradient="purple">
               新增出库单
-            </Button>
+            </GradientButton>
           </Space>
         )}
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={orders}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
+      <GlassCard className="table-card animate-fade-in" gradient="purple">
+        <Table
+          columns={columns}
+          dataSource={orders}
+          rowKey="id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          className="dark-table"
+        />
+      </GlassCard>
 
       <Modal
         title={editingOrder ? '编辑出库单' : '新增出库单'}
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => setModalVisible(false)}
-        width={900}
+        width={1000}
         okText="保存"
         cancelText="取消"
+        className="dark-modal"
       >
         <Form form={form} layout="vertical">
           <div style={{ display: 'flex', gap: 16 }}>
@@ -344,21 +370,21 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
             </Form.Item>
           </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
-              <span style={{ fontWeight: 500 }}>物资明细</span>
+          <div className="items-section">
+            <div className="section-header">
+              <span className="section-title">物资明细</span>
               <Space>
                 <Upload beforeUpload={handleImport} showUploadList={false} accept=".xlsx,.xls">
-                  <Button type="link" icon={<UploadOutlined />}>批量导入</Button>
+                  <a className="upload-link"><UploadOutlined />批量导入</a>
                 </Upload>
-                <Button type="link" onClick={addItem}>+ 添加物资</Button>
+                <a className="upload-link" onClick={addItem}>+ 添加物资</a>
               </Space>
             </div>
 
             {items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', gap: 8, marginBottom: 12, padding: 8, background: '#f9f9f9', borderRadius: 4, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 200px', minWidth: 180 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>选择物资*</label>
+              <div key={index} className="item-row">
+                <div className="item-field">
+                  <label className="field-label">选择物资*</label>
                   <Select
                     placeholder="请选择物资"
                     style={{ width: '100%' }}
@@ -372,8 +398,8 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
                     ))}
                   </Select>
                 </div>
-                <div style={{ width: 120 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>数量*</label>
+                <div className="item-field small">
+                  <label className="field-label">数量*</label>
                   <InputNumber
                     placeholder="数量"
                     style={{ width: '100%' }}
@@ -382,8 +408,8 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
                     min={1}
                   />
                 </div>
-                <div style={{ flex: '1 1 150px', minWidth: 120 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>备注</label>
+                <div className="item-field">
+                  <label className="field-label">备注</label>
                   <Input
                     placeholder="备注"
                     value={item.remark || ''}
@@ -391,7 +417,7 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
                   />
                 </div>
                 {items.length > 1 && (
-                  <Button type="link" danger onClick={() => removeItem(index)} style={{ marginTop: 24 }}>删除</Button>
+                  <a className="remove-item" onClick={() => removeItem(index)}>删除</a>
                 )}
               </div>
             ))}
@@ -404,10 +430,11 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
         open={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={null}
-        width={600}
+        width={700}
+        className="dark-modal"
       >
         {detailData && (
-          <div>
+          <div className="detail-content">
             <p><strong>单据编号：</strong>{detailData.order_no}</p>
             <p><strong>领用部门：</strong>{detailData.department}</p>
             <p><strong>领用人：</strong>{detailData.receiver}</p>
@@ -415,9 +442,9 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
             {detailData.reject_reason && (
               <p><strong>驳回原因：</strong>{detailData.reject_reason}</p>
             )}
-            <p><strong>提交时间：</strong>{detailData.created_at ? dayjs(detailData.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'}</p>
+            <p><strong>提交时间：</strong><span className="time-text">{detailData.created_at ? dayjs(detailData.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'}</span></p>
 
-            <h4 style={{ marginTop: 16 }}>物资明细</h4>
+            <h4>物资明细</h4>
             <Table
               dataSource={detailData.items}
               rowKey="id"
@@ -431,6 +458,7 @@ const OutboundOrders = ({ user }: OutboundOrdersProps) => {
                 { title: '数量', dataIndex: 'quantity', key: 'quantity' },
                 { title: '备注', dataIndex: 'remark', key: 'remark' }
               ]}
+              className="dark-table"
             />
           </div>
         )}

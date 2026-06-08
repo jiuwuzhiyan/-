@@ -1,0 +1,74 @@
+{
+  "matrix": [
+    {
+      "requirementId": "sc1",
+      "requirementText": "UI风格为深色科技风，色彩方案专业大气，具有高级质感",
+      "designNodes": ["n1_1", "n1_2"],
+      "taskIds": ["T1.1", "T1.2", "T1.3", "T1.4", "T1.5"],
+      "acceptanceTests": ["AT-1: 验证主色调为深蓝黑", "AT-2: 验证科技蓝/紫色点缀", "AT-3: 验证玻璃态卡片效果"]
+    },
+    {
+      "requirementId": "sc2",
+      "requirementText": "核心页面重新设计完成",
+      "designNodes": ["n2_1", "n2_2", "n2_3", "n2_4"],
+      "taskIds": ["T2.1-T2.5", "T3.1-T3.7", "T4.1.1-T4.6.3"],
+      "acceptanceTests": ["AT-4: 登录页深色风格", "AT-5: 仪表盘数据可视化", "AT-6: 单据列表/详情显示"]
+    },
+    {
+      "requirementId": "sc3",
+      "requirementText": "多角色权限系统正常工作",
+      "designNodes": ["n3_1", "n3_2"],
+      "taskIds": ["T5.1", "T5.2", "T5.3", "T5.4"],
+      "acceptanceTests": ["AT-7: 业务人员菜单（查看所有单据+库存统计+导出+打印）", "AT-8: 财务人员菜单", "AT-9: 管理员菜单", "AT-10: 无权限访问拦截"]
+    },
+    {
+      "requirementId": "sc4",
+      "requirementText": "并行审批流程完整（入库/出库/回库）",
+      "designNodes": ["n4_1"],
+      "taskIds": ["T4.3.3", "T4.3.4", "T4.4.1", "T4.4.2", "T4.4.3", "T4.4.4", "T4.4.5", "T4.4.6"],
+      "acceptanceTests": ["AT-11: 入库单审批", "AT-12: 出库单审批", "AT-13: 回库单审批", "AT-14: 双方通过后生效"]
+    },
+    {
+      "requirementId": "sc5",
+      "requirementText": "Excel导入导出功能正常",
+      "designNodes": ["n5_1"],
+      "taskIds": ["T6.1", "T6.2", "T6.3"],
+      "acceptanceTests": ["AT-15: 模板下载", "AT-16: Excel导入", "AT-17: Excel导出"]
+    },
+    {
+      "requirementId": "sc6",
+      "requirementText": "单据打印功能正常",
+      "designNodes": ["n6_1"],
+      "taskIds": ["T6.4", "T6.5"],
+      "acceptanceTests": ["AT-18: 打印样式正确", "AT-19: 预览显示正确"]
+    },
+    {
+      "requirementId": "sc7",
+      "requirementText": "系统整体性能良好",
+      "designNodes": ["n7_1"],
+      "taskIds": ["T7.1", "T7.2", "T7.3", "T7.4"],
+      "acceptanceTests": ["AT-20: 首屏加载<1.5s", "AT-21: 动画60fps", "AT-22: Lighthouse≥90"]
+    }
+  ],
+  "evidenceMapping": {
+    "nE1": "深色科技风格参考 - clarified_brief:requirements.ui_redesign",
+    "nE2": "现有系统页面结构 - repo://client/src/pages",
+    "nE3": "现有权限系统 - README.md:角色权限",
+    "nE4": "现有审批流程 - README.md:审批流程",
+    "nE5": "Excel功能需求 - clarified_brief:requirements.functional",
+    "nE6": "打印功能需求 - clarified_brief:requirements.functional",
+    "nE7": "性能要求 - clarified_brief:successCriteria.sc7"
+  },
+  "changeLog": [
+    {
+      "date": "2026-06-07",
+      "changes": [
+        "回库管理增加审批流程（与入库/出库一致）",
+        "库存管理移除阈值预警功能",
+        "业务人员权限调整为：录入单据+查看所有单据+库存统计+导出+打印"
+      ]
+    }
+  ],
+  "generatedAt": "2026-06-07T23:05:00+08:00",
+  "version": 2
+}

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Table, Input, Tag, Button, Modal, Form, InputNumber, message, Select, Space } from 'antd'
-import { SearchOutlined, EditOutlined, WarningOutlined, ExportOutlined } from '@ant-design/icons'
+import { Table, Input, Modal, Form, InputNumber, message, Space } from 'antd'
+import { SearchOutlined, EditOutlined, ExportOutlined } from '@ant-design/icons'
 import { materialService } from '../services/api'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
+import { GlassCard, GradientButton } from '../components'
+import './Orders.css'
 
 interface InventoryProps {
   user: any
@@ -50,7 +52,8 @@ const Inventory = ({ user }: InventoryProps) => {
       spec: record.spec,
       model: record.model,
       unit: record.unit,
-      unit_price: record.unit_price
+      unit_price: record.unit_price,
+      remark: record.remark
     })
     setEditModalVisible(true)
   }
@@ -69,10 +72,6 @@ const Inventory = ({ user }: InventoryProps) => {
     }
   }
 
-  const isLowStock = (record: any) => {
-    return record.current_stock <= record.min_stock
-  }
-
   const exportToExcel = () => {
     const exportData = filteredMaterials.map(m => ({
       '物资名称': m.name,
@@ -80,11 +79,9 @@ const Inventory = ({ user }: InventoryProps) => {
       '到期日': m.model,
       '单位': m.unit,
       '当前库存': m.current_stock,
-      '最低库存': m.min_stock,
       '单价': m.unit_price ? Number(m.unit_price).toFixed(2) : '0.00',
       '总价': m.unit_price && m.current_stock ? (Number(m.unit_price) * Number(m.current_stock)).toFixed(2) : '0.00',
-      '备注': m.remark || '-',
-      '状态': isLowStock(m) ? '库存不足' : '正常'
+      '备注': m.remark || '-'
     }))
 
     const ws = XLSX.utils.json_to_sheet(exportData)
@@ -99,56 +96,57 @@ const Inventory = ({ user }: InventoryProps) => {
     { title: '规格', dataIndex: 'spec', key: 'spec' },
     { title: '到期日', dataIndex: 'model', key: 'model' },
     { title: '单位', dataIndex: 'unit', key: 'unit', width: 80 },
-    { title: '当前库存', dataIndex: 'current_stock', key: 'current_stock', width: 100,
-      render: (v: number, record: any) => (
-        <span style={{ color: isLowStock(record) ? '#ff4d4f' : undefined, fontWeight: isLowStock(record) ? 'bold' : undefined }}>
-          {v} {isLowStock(record) && <WarningOutlined style={{ color: '#ff4d4f' }} />}
-        </span>
-      )
+    { title: '当前库存', dataIndex: 'current_stock', key: 'current_stock', width: 100 },
+    { 
+      title: '单价', 
+      dataIndex: 'unit_price', 
+      key: 'unit_price', 
+      width: 120, 
+      render: (v: number) => v ? <span className="amount-text">¥{Number(v).toFixed(2)}</span> : '-' 
     },
-    { title: '单价', dataIndex: 'unit_price', key: 'unit_price', width: 120, render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '-' },
-    { title: '总价', dataIndex: 'total_price', key: 'total_price', width: 140, render: (_: any, record: any) => (record.unit_price && record.current_stock) ? `¥${(Number(record.unit_price) * Number(record.current_stock)).toFixed(2)}` : '-' },
+    { 
+      title: '总价', 
+      dataIndex: 'total_price', 
+      key: 'total_price', 
+      width: 140, 
+      render: (_: any, record: any) => (record.unit_price && record.current_stock) ? <span className="amount-text">¥{(Number(record.unit_price) * Number(record.current_stock)).toFixed(2)}</span> : '-' 
+    },
     { title: '备注', dataIndex: 'remark', key: 'remark' },
-    {
-      title: '状态',
-      key: 'status',
-      width: 100,
-      render: (_: any, record: any) => (
-        isLowStock(record) ? <Tag color="red">库存不足</Tag> : <Tag color="green">正常</Tag>
-      )
-    },
     {
       title: '操作',
       key: 'action',
       width: 100,
       render: (_: any, record: any) => (
-        user.role === 'superadmin' && <a onClick={() => showEditModal(record)}><EditOutlined /> 编辑</a>
+        user.role === 'superadmin' && <a onClick={() => showEditModal(record)} className="action-link"><EditOutlined /> 编辑</a>
       )
     }
   ]
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h2>库存查询</h2>
+    <div className="page-container">
+      <div className="page-header animate-fade-in">
+        <h1 className="page-title">库存查询</h1>
         <Space>
           <Input
             placeholder="搜索物资名称或规格或到期日"
             prefix={<SearchOutlined />}
-            style={{ width: 300 }}
+            style={{ width: 300, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#e5e7eb' }}
             onChange={(e) => handleSearch(e.target.value)}
           />
-          <Button icon={<ExportOutlined />} onClick={exportToExcel}>导出Excel</Button>
+          <GradientButton icon={<ExportOutlined />} onClick={exportToExcel} gradient="blue">导出Excel</GradientButton>
         </Space>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={filteredMaterials}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
+      <GlassCard className="table-card animate-fade-in" gradient="blue">
+        <Table
+          columns={columns}
+          dataSource={filteredMaterials}
+          rowKey="id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          className="dark-table"
+        />
+      </GlassCard>
 
       <Modal
         title="编辑物资"
@@ -157,6 +155,7 @@ const Inventory = ({ user }: InventoryProps) => {
         onCancel={() => setEditModalVisible(false)}
         okText="保存"
         cancelText="取消"
+        className="dark-modal"
       >
         <Form form={form} layout="vertical">
           <Form.Item label="物资名称" name="name" rules={[{ required: true, message: '请输入物资名称' }]}>

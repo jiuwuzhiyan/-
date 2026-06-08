@@ -1,0 +1,122 @@
+/* 仪表盘页面样式 */
+.dashboard-container {
+  padding: 0;
+}
+
+/* 统计卡片行 */
+.stat-cards-row {
+  margin-bottom: 24px;
+}
+
+/* 统计卡片包装 */
+.stat-card-wrapper {
+  height: 100%;
+}
+
+.stat-card-wrapper .ant-card-body {
+  padding: 20px !important;
+}
+
+/* 统计卡片内容 */
+.stat-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 图标容器 */
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* 统计信息 */
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-family: var(--font-family-mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.stat-suffix {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-left: 4px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+/* 最近单据卡片 */
+.recent-orders-card {
+  margin-top: 24px;
+}
+
+/* 深色表格样式 */
+.dark-table .ant-table {
+  background: transparent !important;
+}
+
+.dark-table .ant-table-thead > tr > th {
+  background: rgba(17, 24, 39, 0.6) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+  font-weight: 600;
+}
+
+.dark-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.dark-table .ant-table-tbody > tr:hover > td {
+  background: rgba(24, 144, 255, 0.08) !important;
+}
+
+.dark-table .ant-table-tbody > tr:nth-child(even) {
+  background: rgba(17, 24, 39, 0.3);
+}
+
+.dark-table .ant-table-tbody > tr:nth-child(odd) {
+  background: transparent;
+}
+
+/* 单据编号 */
+.order-no {
+  font-family: var(--font-family-mono);
+  color: var(--color-primary);
+}
+
+/* 时间文本 */
+.time-text {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .stat-card-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+}

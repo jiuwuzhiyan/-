@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Select, Upload, DatePicker } from 'antd'
+import { Table, Modal, Form, Input, InputNumber, message, Space, Select, Upload, Popconfirm } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { returnService, outboundService } from '../services/api'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
+import { GlassCard, GradientButton } from '../components'
+import './Orders.css'
 
 interface ReturnOrdersProps {
   user: any
@@ -248,13 +250,14 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
   }
 
   const getStatusTag = (status: string) => {
-    const map: Record<string, { color: string; text: string }> = {
-      draft: { color: 'default', text: '草稿' },
-      pending: { color: 'orange', text: '待审批' },
-      approved: { color: 'green', text: '已通过' },
-      rejected: { color: 'red', text: '已驳回' }
+    const map: Record<string, { className: string; text: string }> = {
+      draft: { className: 'status-tag draft', text: '草稿' },
+      pending: { className: 'status-tag pending', text: '待审批' },
+      approved: { className: 'status-tag approved', text: '已通过' },
+      rejected: { className: 'status-tag rejected', text: '已驳回' }
     }
-    return <Tag color={map[status]?.color}>{map[status]?.text || status}</Tag>
+    const item = map[status] || { className: 'status-tag', text: status }
+    return <span className={item.className}>{item.text}</span>
   }
 
   const getPendingApprover = (record: any) => {
@@ -264,46 +267,67 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
     if (!record.admin_approver_id) pending.push('行政')
     if (pending.length === 0) return null
     return (
-      <div>
-        <span style={{ color: '#faad14' }}>待审批：{pending.join('、')}</span>
-        <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
-          {record.finance_approver_id ? <span style={{ color: '#52c41a' }}>✓ 财务已审批</span> : ''}
-          {record.finance_approver_id && !record.admin_approver_id ? ' ' : ''}
-          {record.admin_approver_id ? <span style={{ color: '#52c41a' }}>✓ 行政已审批</span> : ''}
+      <div className="approval-progress">
+        <span className="pending-text">待审批：{pending.join('、')}</span>
+        <div className="approval-status">
+          {record.finance_approver_id && <span className="approval-finished">✓ 财务已审批</span>}
+          {record.finance_approver_id && !record.admin_approver_id && <span className="separator"> </span>}
+          {record.admin_approver_id && <span className="approval-finished">✓ 行政已审批</span>}
         </div>
       </div>
     )
   }
 
   const columns = [
-    { title: '单据编号', dataIndex: 'order_no', key: 'order_no' },
+    { 
+      title: '单据编号', 
+      dataIndex: 'order_no', 
+      key: 'order_no',
+      render: (v: string) => <span className="order-no">{v}</span>
+    },
     { title: '关联出库单', dataIndex: 'outbound_order_no', key: 'outbound_order_no' },
     { title: '提交人', dataIndex: 'submitter_name', key: 'submitter_name' },
-    { title: '状态', dataIndex: 'status', key: 'status', render: (v: string, record: any) => (
-      <Space direction="vertical" size={0}>
-        {getStatusTag(v)}
-        {getPendingApprover(record)}
-      </Space>
-    ) },
+    { 
+      title: '状态', 
+      dataIndex: 'status', 
+      key: 'status', 
+      render: (v: string, record: any) => (
+        <Space direction="vertical" size={0}>
+          {getStatusTag(v)}
+          {getPendingApprover(record)}
+        </Space>
+      ) 
+    },
     { title: '驳回原因', dataIndex: 'reject_reason', key: 'reject_reason', ellipsis: true },
-    { title: '提交时间', dataIndex: 'created_at', key: 'created_at', render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-' },
+    { 
+      title: '提交时间', 
+      dataIndex: 'created_at', 
+      key: 'created_at', 
+      render: (v: string) => <span className="time-text">{v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-'}</span> 
+    },
     {
       title: '操作',
       key: 'action',
       render: (_: any, record: any) => (
         <Space>
-          <a onClick={() => viewDetail(record)}>详情</a>
+          <a onClick={() => viewDetail(record)} className="action-link">详情</a>
           {(record.status === 'draft' || record.status === 'rejected') && user.role === 'business' && (
-            <a onClick={() => showEditModal(record)}><EditOutlined /> 修改</a>
+            <a onClick={() => showEditModal(record)} className="action-link">
+              <EditOutlined /> 修改
+            </a>
           )}
           {(record.status === 'draft' || record.status === 'rejected') && user.role === 'business' && (
             <Popconfirm title="确定提交此单据？" onConfirm={() => handleSubmitOrder(record.id)}>
-              <a><SendOutlined /> 提交</a>
+              <a className="action-link submit">
+                <SendOutlined /> 提交
+              </a>
             </Popconfirm>
           )}
           {record.status === 'draft' && user.role === 'business' && (
             <Popconfirm title="确定删除？" onConfirm={() => handleDelete(record.id)}>
-              <a style={{ color: '#ff4d4f' }}><DeleteOutlined /> 删除</a>
+              <a className="action-link delete">
+                <DeleteOutlined /> 删除
+              </a>
             </Popconfirm>
           )}
         </Space>
@@ -314,35 +338,41 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
   const isMyOrder = user.role === 'business'
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h2>回库管理</h2>
+    <div className="page-container">
+      <div className="page-header animate-fade-in">
+        <h1 className="page-title">回库管理</h1>
         {isMyOrder && (
           <Space>
-            <Button icon={<DownloadOutlined />} onClick={downloadTemplate}>下载模板</Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+            <GradientButton icon={<DownloadOutlined />} onClick={downloadTemplate} gradient="green">
+              下载模板
+            </GradientButton>
+            <GradientButton icon={<PlusOutlined />} onClick={showAddModal} gradient="green">
               新增回库单
-            </Button>
+            </GradientButton>
           </Space>
         )}
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={orders}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
+      <GlassCard className="table-card animate-fade-in" gradient="green">
+        <Table
+          columns={columns}
+          dataSource={orders}
+          rowKey="id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          className="dark-table"
+        />
+      </GlassCard>
 
       <Modal
         title={editingOrder ? '编辑回库单' : '新增回库单'}
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => setModalVisible(false)}
-        width={800}
+        width={1000}
         okText="保存"
         cancelText="取消"
+        className="dark-modal"
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -363,40 +393,49 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
           </Form.Item>
 
           {selectedOutbound && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
-                <span style={{ fontWeight: 500 }}>回库物资明细</span>
+            <div className="items-section">
+              <div className="section-header">
+                <span className="section-title">回库物资明细</span>
                 <Upload beforeUpload={handleImport} showUploadList={false} accept=".xlsx,.xls">
-                  <Button type="link" icon={<UploadOutlined />}>批量导入</Button>
+                  <a className="upload-link"><UploadOutlined />批量导入</a>
                 </Upload>
               </div>
               {items.map((item, index) => (
-                <div key={index} style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-                  <Input
-                    placeholder="物资名称"
-                    value={item.material_name}
-                    disabled
-                    style={{ width: 200, background: '#f5f5f5' }}
-                  />
-                  <Input
-                    placeholder="规格"
-                    value={item.spec}
-                    disabled
-                    style={{ width: 150, background: '#f5f5f5' }}
-                  />
-                  <Input
-                    placeholder="到期日"
-                    value={item.model}
-                    disabled
-                    style={{ width: 150, background: '#f5f5f5' }}
-                  />
-                  <InputNumber
-                    placeholder="回库数量"
-                    value={item.quantity}
-                    onChange={(value) => updateItem(index, 'quantity', value)}
-                    min={1}
-                    style={{ width: 120 }}
-                  />
+                <div key={index} className="item-row">
+                  <div className="item-field">
+                    <label className="field-label">物资名称</label>
+                    <Input
+                      placeholder="物资名称"
+                      value={item.material_name}
+                      disabled
+                    />
+                  </div>
+                  <div className="item-field small">
+                    <label className="field-label">规格</label>
+                    <Input
+                      placeholder="规格"
+                      value={item.spec}
+                      disabled
+                    />
+                  </div>
+                  <div className="item-field small">
+                    <label className="field-label">到期日</label>
+                    <Input
+                      placeholder="到期日"
+                      value={item.model}
+                      disabled
+                    />
+                  </div>
+                  <div className="item-field small">
+                    <label className="field-label">回库数量*</label>
+                    <InputNumber
+                      placeholder="回库数量"
+                      value={item.quantity}
+                      onChange={(value) => updateItem(index, 'quantity', value)}
+                      min={1}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -409,10 +448,11 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
         open={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={null}
-        width={600}
+        width={700}
+        className="dark-modal"
       >
         {detailData && (
-          <div>
+          <div className="detail-content">
             <p><strong>单据编号：</strong>{detailData.order_no}</p>
             <p><strong>关联出库单：</strong>{detailData.outbound_order_no}</p>
             <p><strong>提交人：</strong>{detailData.submitter_name}</p>
@@ -420,9 +460,9 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
             {detailData.reject_reason && (
               <p><strong>驳回原因：</strong>{detailData.reject_reason}</p>
             )}
-            <p><strong>提交时间：</strong>{detailData.created_at ? dayjs(detailData.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'}</p>
+            <p><strong>提交时间：</strong><span className="time-text">{detailData.created_at ? dayjs(detailData.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'}</span></p>
 
-            <h4 style={{ marginTop: 16 }}>物资明细</h4>
+            <h4>物资明细</h4>
             <Table
               dataSource={detailData.items}
               rowKey="id"
@@ -435,6 +475,7 @@ const ReturnOrders = ({ user }: ReturnOrdersProps) => {
                 { title: '单位', dataIndex: 'unit', key: 'unit' },
                 { title: '数量', dataIndex: 'quantity', key: 'quantity' }
               ]}
+              className="dark-table"
             />
           </div>
         )}

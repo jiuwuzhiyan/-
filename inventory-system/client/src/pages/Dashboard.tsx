@@ -1,22 +1,34 @@
 import { useState, useEffect } from 'react'
-import { Card, Row, Col, Statistic, Table, Tag, Space } from 'antd'
+import { Row, Col, Table, Tag } from 'antd'
 import {
   InboxOutlined,
-  ExclamationCircleOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  DatabaseOutlined,
+  ExportOutlined
 } from '@ant-design/icons'
 import { materialService, inboundService, outboundService, returnService, approvalService } from '../services/api'
+import { GlassCard } from '../components'
 import dayjs from 'dayjs'
+import './Dashboard.css'
 
 interface DashboardProps {
   user: any
 }
 
+interface StatCardData {
+  title: string
+  value: number
+  icon: React.ReactNode
+  gradient: 'blue' | 'purple' | 'green' | 'orange'
+  suffix?: string
+}
+
 const Dashboard = ({ user }: DashboardProps) => {
   const [stats, setStats] = useState({
-    totalMaterials: 0,
+    todayInbound: 0,
+    todayOutbound: 0,
     pendingApproval: 0,
-    lowStockItems: 0
+    totalStock: 0
   })
   const [recentOrders, setRecentOrders] = useState<any[]>([])
 
@@ -34,13 +46,30 @@ const Dashboard = ({ user }: DashboardProps) => {
         approvalService.listPending()
       ])
 
-      const lowStock = materials.data?.filter((m: any) => m.current_stock <= m.min_stock).length || 0
+      const today = dayjs().format('YYYY-MM-DD')
+      
+      // 今日入库数
+      const todayInboundCount = (inbound.data || []).filter((o: any) => 
+        dayjs(o.created_at).format('YYYY-MM-DD') === today
+      ).length
+      
+      // 今日出库数
+      const todayOutboundCount = (outbound.data || []).filter((o: any) => 
+        dayjs(o.created_at).format('YYYY-MM-DD') === today
+      ).length
+      
+      // 库存总量
+      const totalStock = (materials.data || []).reduce((sum: number, m: any) => 
+        sum + (m.current_stock || 0), 0
+      )
+      
       const pendingCount = pendingApprovals.data?.length || 0
 
       setStats({
-        totalMaterials: materials.data?.length || 0,
+        todayInbound: todayInboundCount,
+        todayOutbound: todayOutboundCount,
         pendingApproval: pendingCount,
-        lowStockItems: lowStock
+        totalStock: totalStock
       })
 
       // 合并最近的单据
@@ -59,68 +88,134 @@ const Dashboard = ({ user }: DashboardProps) => {
   }
 
   const getStatusTag = (status: string) => {
-    const map: Record<string, { color: string; text: string }> = {
-      pending: { color: 'orange', text: '待审批' },
-      approved: { color: 'green', text: '已通过' },
-      rejected: { color: 'red', text: '已驳回' }
+    const map: Record<string, { className: string; text: string }> = {
+      pending: { className: 'status-tag pending', text: '待审批' },
+      approved: { className: 'status-tag approved', text: '已通过' },
+      rejected: { className: 'status-tag rejected', text: '已驳回' },
+      draft: { className: 'status-tag draft', text: '草稿' }
     }
-    const item = map[status] || { color: 'default', text: status }
-    return <Tag color={item.color}>{item.text}</Tag>
+    const item = map[status] || { className: 'status-tag', text: status }
+    return <span className={item.className}>{item.text}</span>
   }
 
+  const statCards: StatCardData[] = [
+    {
+      title: '今日入库',
+      value: stats.todayInbound,
+      icon: <InboxOutlined />,
+      gradient: 'blue',
+      suffix: '单'
+    },
+    {
+      title: '今日出库',
+      value: stats.todayOutbound,
+      icon: <ExportOutlined />,
+      gradient: 'purple',
+      suffix: '单'
+    },
+    {
+      title: '待审批',
+      value: stats.pendingApproval,
+      icon: <ClockCircleOutlined />,
+      gradient: 'orange',
+      suffix: '单'
+    },
+    {
+      title: '库存总量',
+      value: stats.totalStock,
+      icon: <DatabaseOutlined />,
+      gradient: 'green',
+      suffix: '件'
+    }
+  ]
+
   const columns = [
-    { title: '单据编号', dataIndex: 'order_no', key: 'order_no', width: 150 },
-    { title: '类型', dataIndex: 'type', key: 'type', width: 80 },
-    { title: '状态', dataIndex: 'status', key: 'status', width: 80, render: (v: string) => getStatusTag(v) },
-    { title: '提交人', dataIndex: 'submitter_name', key: 'submitter_name', width: 100 },
-    { title: '提交时间', dataIndex: 'created_at', key: 'created_at', width: 160, render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm') }
+    { 
+      title: '单据编号', 
+      dataIndex: 'order_no', 
+      key: 'order_no', 
+      width: 150,
+      render: (v: string) => <span className="order-no">{v}</span>
+    },
+    { 
+      title: '类型', 
+      dataIndex: 'type', 
+      key: 'type', 
+      width: 80,
+      render: (v: string, record: any) => {
+        const colorMap: Record<string, string> = {
+          inbound: '#1890ff',
+          outbound: '#667eea',
+          return: '#52c41a'
+        }
+        return <Tag color={colorMap[record.typeTag] || 'default'}>{v}</Tag>
+      }
+    },
+    { 
+      title: '状态', 
+      dataIndex: 'status', 
+      key: 'status', 
+      width: 80, 
+      render: (v: string) => getStatusTag(v) 
+    },
+    { 
+      title: '提交人', 
+      dataIndex: 'submitter_name', 
+      key: 'submitter_name', 
+      width: 100 
+    },
+    { 
+      title: '提交时间', 
+      dataIndex: 'created_at', 
+      key: 'created_at', 
+      width: 160, 
+      render: (v: string) => <span className="time-text">{dayjs(v).format('YYYY-MM-DD HH:mm')}</span>
+    }
   ]
 
   return (
-    <div>
-      <h2 style={{ marginBottom: 24 }}>工作台</h2>
+    <div className="dashboard-container">
+      {/* 页面标题 */}
+      <h1 className="page-title animate-fade-in">工作台</h1>
 
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="物资种类"
-              value={stats.totalMaterials}
-              prefix={<InboxOutlined style={{ color: '#1677ff' }} />}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="待审批单据"
-              value={stats.pendingApproval}
-              prefix={<ClockCircleOutlined style={{ color: '#faad14' }} />}
-              valueStyle={{ color: stats.pendingApproval > 0 ? '#faad14' : undefined }}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="库存预警"
-              value={stats.lowStockItems}
-              prefix={<ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />}
-              valueStyle={{ color: stats.lowStockItems > 0 ? '#ff4d4f' : undefined }}
-            />
-          </Card>
-        </Col>
+      {/* 统计卡片 */}
+      <Row gutter={[16, 16]} className="stat-cards-row">
+        {statCards.map((card, index) => (
+          <Col xs={24} sm={12} lg={6} key={card.title}>
+            <GlassCard 
+              gradient={card.gradient}
+              className={`stat-card-wrapper animate-fade-in`}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="stat-card-content">
+                <div className="stat-icon" style={{ 
+                  background: `linear-gradient(135deg, ${card.gradient === 'blue' ? '#1890ff, #00d4ff' : 
+                    card.gradient === 'purple' ? '#667eea, #764ba2' : 
+                    card.gradient === 'green' ? '#52c41a, #73d13d' : '#faad14, #ff8c00'})` 
+                }}>
+                  {card.icon}
+                </div>
+                <div className="stat-info">
+                  <div className="stat-value">{card.value}<span className="stat-suffix">{card.suffix}</span></div>
+                  <div className="stat-label">{card.title}</div>
+                </div>
+              </div>
+            </GlassCard>
+          </Col>
+        ))}
       </Row>
 
-      <Card title="最近单据">
+      {/* 最近单据 */}
+      <GlassCard title="最近单据" className="recent-orders-card animate-fade-in" style={{ animationDelay: '0.4s' }}>
         <Table
           columns={columns}
           dataSource={recentOrders}
           rowKey="id"
           pagination={false}
-          size="small"
+          size="middle"
+          className="dark-table"
         />
-      </Card>
+      </GlassCard>
     </div>
   )
 }

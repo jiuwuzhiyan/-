@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm, Upload } from 'antd'
+import { Table, Modal, Form, Input, InputNumber, message, Space, Upload } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined, UploadOutlined, DownloadOutlined } from '@ant-design/icons'
 import { inboundService } from '../services/api'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
+import { GlassCard, GradientButton } from '../components'
+import './Orders.css'
 
 interface InboundOrdersProps {
   user: any
@@ -34,9 +36,7 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
   const loadData = async () => {
     setLoading(true)
     try {
-      console.log('Loading inbound orders...')
       const res = await inboundService.list()
-      console.log('Loaded orders:', res.data)
       setOrders(res.data || [])
     } catch (error) {
       console.error('Failed to load orders:', error)
@@ -132,10 +132,7 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
 
   const handleSubmit = async () => {
     try {
-      const values = await form.validateFields()
       const totalAmount = items.reduce((sum, item) => sum + (item.total_price || 0), 0)
-
-      console.log('Submitting order:', { total_amount: totalAmount, items })
 
       const orderData = {
         supplier: '',
@@ -164,7 +161,6 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
       setModalVisible(false)
       loadData()
     } catch (error: any) {
-      console.error('Submit error:', error)
       if (!error.errorFields) {
         message.error(error.response?.data?.msg || '操作失败')
       }
@@ -222,13 +218,14 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
   }
 
   const getStatusTag = (status: string) => {
-    const map: Record<string, { color: string; text: string }> = {
-      draft: { color: 'default', text: '草稿' },
-      pending: { color: 'orange', text: '待审批' },
-      approved: { color: 'green', text: '已通过' },
-      rejected: { color: 'red', text: '已驳回' }
+    const map: Record<string, { className: string; text: string }> = {
+      draft: { className: 'status-tag draft', text: '草稿' },
+      pending: { className: 'status-tag pending', text: '待审批' },
+      approved: { className: 'status-tag approved', text: '已通过' },
+      rejected: { className: 'status-tag rejected', text: '已驳回' }
     }
-    return <Tag color={map[status]?.color}>{map[status]?.text || status}</Tag>
+    const item = map[status] || { className: 'status-tag', text: status }
+    return <span className={item.className}>{item.text}</span>
   }
 
   const getPendingApprover = (record: any) => {
@@ -238,50 +235,77 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
     if (!record.admin_approver_id) pending.push('行政')
     if (pending.length === 0) return null
     return (
-      <div>
-        <span style={{ color: '#faad14' }}>待审批：{pending.join('、')}</span>
-        <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
-          {record.finance_approver_id ? <span style={{ color: '#52c41a' }}>✓ 财务已审批</span> : ''}
-          {record.finance_approver_id && !record.admin_approver_id ? ' ' : ''}
-          {record.admin_approver_id ? <span style={{ color: '#52c41a' }}>✓ 行政已审批</span> : ''}
+      <div className="approval-progress">
+        <span className="pending-text">待审批：{pending.join('、')}</span>
+        <div className="approval-status">
+          {record.finance_approver_id && <span className="approval-finished">✓ 财务已审批</span>}
+          {record.finance_approver_id && !record.admin_approver_id && <span className="separator"> </span>}
+          {record.admin_approver_id && <span className="approval-finished">✓ 行政已审批</span>}
         </div>
       </div>
     )
   }
 
   const columns = [
-    { title: '单据编号', dataIndex: 'order_no', key: 'order_no' },
+    { 
+      title: '单据编号', 
+      dataIndex: 'order_no', 
+      key: 'order_no',
+      render: (v: string) => <span className="order-no">{v}</span>
+    },
     { title: '供应商', dataIndex: 'supplier', key: 'supplier' },
     { title: '物资明细', dataIndex: 'materialNames', key: 'materialNames', ellipsis: true },
     { title: '数量', dataIndex: 'totalQty', key: 'totalQty' },
-    { title: '单价', dataIndex: 'avgPrice', key: 'avgPrice', render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '-' },
-    { title: '总金额', dataIndex: 'total_amount', key: 'total_amount', render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '¥0.00' },
-    { title: '状态', dataIndex: 'status', key: 'status', render: (v: string, record: any) => (
-      <Space direction="vertical" size={0}>
-        {getStatusTag(v)}
-        {getPendingApprover(record)}
-      </Space>
-    ) },
+    { 
+      title: '单价', 
+      dataIndex: 'avgPrice', 
+      key: 'avgPrice', 
+      render: (v: number) => v ? <span className="amount-text">¥{Number(v).toFixed(2)}</span> : '-' 
+    },
+    { 
+      title: '总金额', 
+      dataIndex: 'total_amount', 
+      key: 'total_amount', 
+      render: (v: number) => v ? <span className="amount-text">¥{Number(v).toFixed(2)}</span> : <span className="amount-text">¥0.00</span> 
+    },
+    { 
+      title: '状态', 
+      dataIndex: 'status', 
+      key: 'status', 
+      render: (v: string, record: any) => (
+        <Space direction="vertical" size={0}>
+          {getStatusTag(v)}
+          {getPendingApprover(record)}
+        </Space>
+      ) 
+    },
     { title: '驳回原因', dataIndex: 'reject_reason', key: 'reject_reason', ellipsis: true },
-    { title: '提交时间', dataIndex: 'created_at', key: 'created_at', render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-' },
+    { 
+      title: '提交时间', 
+      dataIndex: 'created_at', 
+      key: 'created_at', 
+      render: (v: string) => <span className="time-text">{v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-'}</span> 
+    },
     {
       title: '操作',
       key: 'action',
       render: (_: any, record: any) => (
         <Space>
-          <a onClick={() => viewDetail(record)}>详情</a>
+          <a onClick={() => viewDetail(record)} className="action-link">详情</a>
           {(record.status === 'draft' || record.status === 'rejected') && user.role === 'business' && (
-            <a onClick={() => showEditModal(record)}><EditOutlined /> 修改</a>
+            <a onClick={() => showEditModal(record)} className="action-link">
+              <EditOutlined /> 修改
+            </a>
           )}
           {(record.status === 'draft' || record.status === 'rejected') && user.role === 'business' && (
-            <Popconfirm title="确定提交此单据？" onConfirm={() => handleSubmitOrder(record.id)}>
-              <a><SendOutlined /> 提交</a>
-            </Popconfirm>
+            <a onClick={() => handleSubmitOrder(record.id)} className="action-link submit">
+              <SendOutlined /> 提交
+            </a>
           )}
           {record.status === 'draft' && user.role === 'business' && (
-            <Popconfirm title="确定删除？" onConfirm={() => handleDelete(record.id)}>
-              <a style={{ color: '#ff4d4f' }}><DeleteOutlined /> 删除</a>
-            </Popconfirm>
+            <a onClick={() => handleDelete(record.id)} className="action-link delete">
+              <DeleteOutlined /> 删除
+            </a>
           )}
         </Space>
       )
@@ -291,26 +315,31 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
   const isMyOrder = user.role === 'business'
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h2>入库管理</h2>
+    <div className="page-container">
+      <div className="page-header animate-fade-in">
+        <h1 className="page-title">入库管理</h1>
         {isMyOrder && (
           <Space>
-            <Button icon={<DownloadOutlined />} onClick={downloadTemplate}>下载模板</Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+            <GradientButton icon={<DownloadOutlined />} onClick={downloadTemplate} gradient="blue">
+              下载模板
+            </GradientButton>
+            <GradientButton icon={<PlusOutlined />} onClick={showAddModal} gradient="blue">
               新增入库单
-            </Button>
+            </GradientButton>
           </Space>
         )}
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={orders}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
+      <GlassCard className="table-card animate-fade-in" gradient="blue">
+        <Table
+          columns={columns}
+          dataSource={orders}
+          rowKey="id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          className="dark-table"
+        />
+      </GlassCard>
 
       <Modal
         title={editingOrder ? '编辑入库单' : '新增入库单'}
@@ -320,55 +349,56 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
         width={1000}
         okText="保存"
         cancelText="取消"
+        className="dark-modal"
       >
         <Form form={form} layout="vertical">
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
-              <span style={{ fontWeight: 500 }}>物资明细</span>
+          <div className="items-section">
+            <div className="section-header">
+              <span className="section-title">物资明细</span>
               <Space>
                 <Upload beforeUpload={handleImport} showUploadList={false} accept=".xlsx,.xls">
-                  <Button type="link" icon={<UploadOutlined />}>批量导入</Button>
+                  <a className="upload-link"><UploadOutlined />批量导入</a>
                 </Upload>
-                <Button type="link" onClick={addItem}>+ 添加物资</Button>
+                <a className="upload-link" onClick={addItem}>+ 添加物资</a>
               </Space>
             </div>
 
             {items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', gap: 6, marginBottom: 12, padding: 8, background: '#f9f9f9', borderRadius: 4, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 150px', minWidth: 120 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>物资名称*</label>
+              <div key={index} className="item-row">
+                <div className="item-field">
+                  <label className="field-label">物资名称*</label>
                   <Input
                     placeholder="请输入物资名称"
                     value={item.material_name}
                     onChange={(e) => updateItem(index, 'material_name', e.target.value)}
                   />
                 </div>
-                <div style={{ flex: '1 1 100px', minWidth: 80 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>规格</label>
+                <div className="item-field">
+                  <label className="field-label">规格</label>
                   <Input
                     placeholder="规格"
                     value={item.spec}
                     onChange={(e) => updateItem(index, 'spec', e.target.value)}
                   />
                 </div>
-                <div style={{ flex: '1 1 100px', minWidth: 80 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>到期日</label>
+                <div className="item-field">
+                  <label className="field-label">到期日</label>
                   <Input
                     placeholder="到期日"
                     value={item.model}
                     onChange={(e) => updateItem(index, 'model', e.target.value)}
                   />
                 </div>
-                <div style={{ width: 70 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>单位</label>
+                <div className="item-field small">
+                  <label className="field-label">单位</label>
                   <Input
                     placeholder="单位"
                     value={item.unit}
                     onChange={(e) => updateItem(index, 'unit', e.target.value)}
                   />
                 </div>
-                <div style={{ width: 85 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>数量*</label>
+                <div className="item-field small">
+                  <label className="field-label">数量*</label>
                   <InputNumber
                     placeholder="数量"
                     style={{ width: '100%' }}
@@ -377,8 +407,8 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
                     min={1}
                   />
                 </div>
-                <div style={{ width: 95 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>单价*</label>
+                <div className="item-field small">
+                  <label className="field-label">单价*</label>
                   <InputNumber
                     placeholder="单价"
                     style={{ width: '100%' }}
@@ -388,26 +418,26 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
                     precision={2}
                   />
                 </div>
-                <div style={{ width: 95 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>总价</label>
+                <div className="item-field small">
+                  <label className="field-label">总价</label>
                   <InputNumber
                     placeholder="总价"
-                    style={{ width: '100%', background: '#f5f5f5' }}
+                    style={{ width: '100%' }}
                     value={item.total_price}
                     disabled
                     precision={2}
                   />
                 </div>
-                <div style={{ flex: '1 1 120px', minWidth: 100 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>供应商</label>
+                <div className="item-field">
+                  <label className="field-label">供应商</label>
                   <Input
                     placeholder="供应商"
                     value={item.supplier || ''}
                     onChange={(e) => updateItem(index, 'supplier', e.target.value)}
                   />
                 </div>
-                <div style={{ flex: '1 1 100px', minWidth: 80 }}>
-                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>备注</label>
+                <div className="item-field">
+                  <label className="field-label">备注</label>
                   <Input
                     placeholder="备注"
                     value={item.remark || ''}
@@ -415,7 +445,7 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
                   />
                 </div>
                 {items.length > 1 && (
-                  <Button type="link" danger onClick={() => removeItem(index)} style={{ marginTop: 24 }}>删除</Button>
+                  <a className="remove-item" onClick={() => removeItem(index)}>删除</a>
                 )}
               </div>
             ))}
@@ -429,19 +459,20 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
         onCancel={() => setDetailModalVisible(false)}
         footer={null}
         width={700}
+        className="dark-modal"
       >
         {detailData && (
-          <div>
+          <div className="detail-content">
             <p><strong>单据编号：</strong>{detailData.order_no}</p>
             <p><strong>供应商：</strong>{detailData.supplier}</p>
-            <p><strong>总金额：</strong>¥{Number(detailData.total_amount || 0).toFixed(2)}</p>
+            <p><strong>总金额：</strong><span className="amount-text">¥{Number(detailData.total_amount || 0).toFixed(2)}</span></p>
             <p><strong>状态：</strong>{getStatusTag(detailData.status)}</p>
             {detailData.reject_reason && (
               <p><strong>驳回原因：</strong>{detailData.reject_reason}</p>
             )}
-            <p><strong>提交时间：</strong>{detailData.created_at ? dayjs(detailData.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'}</p>
+            <p><strong>提交时间：</strong><span className="time-text">{detailData.created_at ? dayjs(detailData.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'}</span></p>
 
-            <h4 style={{ marginTop: 16 }}>物资明细</h4>
+            <h4>物资明细</h4>
             <Table
               dataSource={detailData.items}
               rowKey="id"
@@ -453,10 +484,21 @@ const InboundOrders = ({ user }: InboundOrdersProps) => {
                 { title: '到期日', dataIndex: 'model', key: 'model' },
                 { title: '单位', dataIndex: 'unit', key: 'unit' },
                 { title: '数量', dataIndex: 'quantity', key: 'quantity' },
-                { title: '单价', dataIndex: 'unit_price', key: 'unit_price', render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '¥0.00' },
-                { title: '总价', dataIndex: 'total_price', key: 'total_price', render: (v: number) => v ? `¥${Number(v).toFixed(2)}` : '¥0.00' },
+                { 
+                  title: '单价', 
+                  dataIndex: 'unit_price', 
+                  key: 'unit_price', 
+                  render: (v: number) => v ? <span className="amount-text">¥{Number(v).toFixed(2)}</span> : <span className="amount-text">¥0.00</span> 
+                },
+                { 
+                  title: '总价', 
+                  dataIndex: 'total_price', 
+                  key: 'total_price', 
+                  render: (v: number) => v ? <span className="amount-text">¥{Number(v).toFixed(2)}</span> : <span className="amount-text">¥0.00</span> 
+                },
                 { title: '备注', dataIndex: 'remark', key: 'remark' }
               ]}
+              className="dark-table"
             />
           </div>
         )}

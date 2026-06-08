@@ -1,0 +1,69 @@
+/* 玻璃态卡片样式 */
+.glass-card {
+  background: rgba(17, 24, 39, 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-card);
+  transition: all var(--duration-normal) ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-gradient-end));
+}
+
+/* 渐变顶边 */
+.glass-card-gradient-blue::before {
+  background: linear-gradient(90deg, #1890ff, #00d4ff);
+}
+
+.glass-card-gradient-purple::before {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.glass-card-gradient-green::before {
+  background: linear-gradient(90deg, #52c41a, #73d13d);
+}
+
+.glass-card-gradient-orange::before {
+  background: linear-gradient(90deg, #faad14, #ff8c00);
+}
+
+/* 悬浮效果 */
+.glass-card-hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(24, 144, 255, 0.3) !important;
+  cursor: pointer;
+}
+
+/* 标题样式 */
+.glass-card-title {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Ant Design Card 覆盖 */
+.glass-card .ant-card-head {
+  border-bottom: 1px solid var(--color-border) !important;
+  background: transparent !important;
+  padding: 16px 20px;
+}
+
+.glass-card .ant-card-body {
+  padding: 20px;
+}
+
+.glass-card .ant-card-head-title {
+  color: var(--color-text-primary) !important;
+}

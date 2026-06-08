@@ -1,0 +1,82 @@
+/* 渐变按钮基础样式 */
+.gradient-btn {
+  border: none !important;
+  color: var(--color-text-primary) !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-lg) !important;
+  transition: all var(--duration-normal) ease !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 蓝色渐变 */
+.gradient-btn-blue {
+  background: linear-gradient(135deg, #1890ff 0%, #667eea 100%) !important;
+}
+
+.gradient-btn-blue:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #764ba2 100%) !important;
+  transform: translateY(-1px);
+}
+
+/* 紫色渐变 */
+.gradient-btn-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.gradient-btn-purple:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #9b59b6 100%) !important;
+  transform: translateY(-1px);
+}
+
+/* 绿色渐变 */
+.gradient-btn-green {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%) !important;
+}
+
+.gradient-btn-green:hover {
+  background: linear-gradient(135deg, #73d13d 0%, #95de64 100%) !important;
+  transform: translateY(-1px);
+}
+
+/* 红色渐变 */
+.gradient-btn-red {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%) !important;
+}
+
+.gradient-btn-red:hover {
+  background: linear-gradient(135deg, #ff7875 0%, #ffa39e 100%) !important;
+  transform: translateY(-1px);
+}
+
+/* 橙色渐变 */
+.gradient-btn-orange {
+  background: linear-gradient(135deg, #faad14 0%, #ff8c00 100%) !important;
+}
+
+.gradient-btn-orange:hover {
+  background: linear-gradient(135deg, #ffc53d 0%, #ffa940 100%) !important;
+  transform: translateY(-1px);
+}
+
+/* 发光效果 */
+.gradient-btn-glow {
+  box-shadow: 0 0 20px rgba(24, 144, 255, 0.3);
+}
+
+.gradient-btn-glow:hover {
+  box-shadow: 0 0 30px rgba(24, 144, 255, 0.5);
+}
+
+/* 加载状态 */
+.gradient-btn.ant-btn-loading {
+  opacity: 0.7;
+}
+
+/* 禁用状态 */
+.gradient-btn:disabled {
+  background: var(--color-border) !important;
+  color: var(--color-text-tertiary) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}

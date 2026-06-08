@@ -1,0 +1,32 @@
+{
+  "previews": [
+    {
+      "page": "登录页",
+      "prompt": "深色科技风格企业管理系统登录界面，深蓝黑背景，中央半透明玻璃态卡片，毛玻璃效果，系统名称'唐山中骏世界城库存系统'，专业大气高级感",
+      "imageUrl": "https://aka.doubaocdn.com/s/l3Hg1wYmC4",
+      "model": "text_to_image",
+      "size": "landscape_16_9",
+      "generatedAt": "2026-06-07T22:58:00+08:00",
+      "status": "generated"
+    },
+    {
+      "page": "仪表盘",
+      "prompt": "深色科技风格数据仪表盘界面，四统计卡片：今日入库/今日出库/待审批/库存预警，玻璃态卡片，入库趋势折线图，物资分类饼图",
+      "imageUrl": "https://aka.doubaocdn.com/s/auFa1wYmCE",
+      "model": "text_to_image",
+      "size": "landscape_16_9",
+      "generatedAt": "2026-06-07T22:58:00+08:00",
+      "status": "generated"
+    },
+    {
+      "page": "审批管理",
+      "prompt": "深色科技风格并行审批页面，审批进度时间轴，双栏布局：财务审批/行政审批卡片，专业大气",
+      "imageUrl": "https://aka.doubaocdn.com/s/0Rvr1wYmCE",
+      "model": "text_to_image",
+      "size": "landscape_16_9",
+      "generatedAt": "2026-06-07T22:58:00+08:00",
+      "status": "generated"
+    }
+  ],
+  "note": "预览·未验证 - AI生成，仅供视觉参考"
+}

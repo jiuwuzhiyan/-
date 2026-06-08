@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Modal, Form, Input, Select, message, Popconfirm, Tag, Space, Checkbox, InputNumber } from 'antd'
+import { Table, Button, Modal, Form, Input, Select, message, Popconfirm, Space, Checkbox, InputNumber, Tag } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, RedoOutlined } from '@ant-design/icons'
 import { userService } from '../services/api'
 import dayjs from 'dayjs'
+import { GlassCard, GradientButton } from '../components'
+import './Orders.css'
 
 interface UserManagementProps {
   user: any
@@ -27,17 +29,18 @@ const UserManagement = ({ user }: UserManagementProps) => {
   ]
 
   const getRoleTag = (role: string) => {
-    const map: Record<string, { color: string; text: string }> = {
-      business: { color: 'blue', text: '业务人员' },
-      finance: { color: 'green', text: '财务人员' },
-      admin: { color: 'orange', text: '行政人员' },
-      superadmin: { color: 'red', text: '系统管理员' }
+    const map: Record<string, { className: string; text: string }> = {
+      business: { className: 'status-tag', text: '业务人员' },
+      finance: { className: 'status-tag pending', text: '财务人员' },
+      admin: { className: 'status-tag approved', text: '行政人员' },
+      superadmin: { className: 'status-tag rejected', text: '系统管理员' }
     }
-    return <Tag color={map[role]?.color}>{map[role]?.text || role}</Tag>
+    const item = map[role] || { className: 'status-tag', text: role }
+    return <span className={item.className}>{item.text}</span>
   }
 
   const getPrintPermissionText = (value: number) => {
-    return value ? <Tag color="green">是</Tag> : <Tag color="gray">否</Tag>
+    return value ? <span className="status-tag approved">是</span> : <span className="status-tag">否</span>
   }
 
   const loadData = async () => {
@@ -78,7 +81,6 @@ const UserManagement = ({ user }: UserManagementProps) => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
-      // 转换为数字
       values.can_print_inbound = values.can_print_inbound ? 1 : 0
       values.can_print_outbound = values.can_print_outbound ? 1 : 0
       values.can_print_return = values.can_print_return ? 1 : 0
@@ -124,7 +126,6 @@ const UserManagement = ({ user }: UserManagementProps) => {
       if (res.code === 200) {
         message.success(res.msg || '密码重置成功')
         setResetPasswordVisible(false)
-        // 显示新密码
         if (res.data?.password) {
           Modal.info({
             title: '密码已重置',
@@ -156,13 +157,13 @@ const UserManagement = ({ user }: UserManagementProps) => {
     { title: '打印入库单', dataIndex: 'can_print_inbound', key: 'can_print_inbound', render: (v: number) => getPrintPermissionText(v) },
     { title: '打印出库单', dataIndex: 'can_print_outbound', key: 'can_print_outbound', render: (v: number) => getPrintPermissionText(v) },
     { title: '打印回库单', dataIndex: 'can_print_return', key: 'can_print_return', render: (v: number) => getPrintPermissionText(v) },
-    { title: '创建时间', dataIndex: 'created_at', key: 'created_at', render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    { title: '创建时间', dataIndex: 'created_at', key: 'created_at', render: (v: string) => <span className="time-text">{dayjs(v).format('YYYY-MM-DD HH:mm')}</span> },
     {
       title: '操作',
       key: 'action',
       render: (_: any, record: any) => (
         <Space>
-          <a onClick={() => showEditModal(record)}><EditOutlined /> 编辑</a>
+          <a onClick={() => showEditModal(record)} className="action-link"><EditOutlined /> 编辑</a>
           <Popconfirm
             title="重置密码"
             description={<>确定重置用户 <strong>{record.username}</strong> 的密码吗？<br/>默认密码将重置为 123456</>}
@@ -170,11 +171,11 @@ const UserManagement = ({ user }: UserManagementProps) => {
             okText="重置"
             cancelText="取消"
           >
-            <a style={{ color: '#faad14' }}><KeyOutlined /> 重置密码</a>
+            <a className="action-link" style={{ color: '#faad14' }}><KeyOutlined /> 重置密码</a>
           </Popconfirm>
           {record.id !== user.id && (
             <Popconfirm title="确定删除此用户？" onConfirm={() => handleDelete(record.id)}>
-              <a style={{ color: '#ff4d4f' }}><DeleteOutlined /> 删除</a>
+              <a className="action-link delete"><DeleteOutlined /> 删除</a>
             </Popconfirm>
           )}
         </Space>
@@ -183,21 +184,24 @@ const UserManagement = ({ user }: UserManagementProps) => {
   ]
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h2>用户管理</h2>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+    <div className="page-container">
+      <div className="page-header animate-fade-in">
+        <h1 className="page-title">用户管理</h1>
+        <GradientButton icon={<PlusOutlined />} onClick={showAddModal} gradient="purple">
           新增用户
-        </Button>
+        </GradientButton>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={users}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
+      <GlassCard className="table-card animate-fade-in" gradient="purple">
+        <Table
+          columns={columns}
+          dataSource={users}
+          rowKey="id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          className="dark-table"
+        />
+      </GlassCard>
 
       <Modal
         title={editingUser ? '编辑用户' : '新增用户'}
@@ -206,6 +210,7 @@ const UserManagement = ({ user }: UserManagementProps) => {
         onCancel={() => setModalVisible(false)}
         okText="保存"
         cancelText="取消"
+        className="dark-modal"
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -267,6 +272,7 @@ const UserManagement = ({ user }: UserManagementProps) => {
         confirmLoading={resetPasswordLoading}
         okText="确认重置"
         cancelText="取消"
+        className="dark-modal"
       >
         <p style={{ marginBottom: 16 }}>
           将重置用户 <strong>{resetPasswordUser?.username}</strong> 的密码

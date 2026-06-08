@@ -1,0 +1,60 @@
+{
+  "routes": [
+    {
+      "id": "route1",
+      "name": "标准路线",
+      "description": "基于Python的轻量级Web应用，使用Flask作为后端，React作为前端",
+      "pros": [
+        "开发速度快，Python生态丰富",
+        "有很多现成的爬虫库可用",
+        "易于部署和维护",
+        "适合中小型项目"
+      ],
+      "cons": [
+        "大规模数据抓取性能可能不如Go/Node.js",
+        "并发处理能力有限"
+      ],
+      "cost": "中等",
+      "risk": "低",
+      "benefit": "高"
+    },
+    {
+      "id": "route2",
+      "name": "深度路线",
+      "description": "基于Node.js的全栈应用，使用Express作为后端，React作为前端，使用Playwright进行浏览器自动化",
+      "pros": [
+        "浏览器自动化能力强，能更好地处理复杂页面",
+        "Node.js处理并发性能好",
+        "全栈JavaScript，开发效率高"
+      ],
+      "cons": [
+        "需要处理反爬虫机制",
+        "浏览器资源消耗较大"
+      ],
+      "cost": "中等偏高",
+      "risk": "中等",
+      "benefit": "很高"
+    },
+    {
+      "id": "route3",
+      "name": "升级路线",
+      "description": "微服务架构，包含数据采集服务、API服务、定时任务服务、前端服务，使用Docker容器化部署",
+      "pros": [
+        "可扩展性强",
+        "各模块独立部署和维护",
+        "适合大规模数据处理",
+        "容错性好"
+      ],
+      "cons": [
+        "开发复杂度高",
+        "部署和运维成本高",
+        "开发周期长"
+      ],
+      "cost": "高",
+      "risk": "中等偏高",
+      "benefit": "极高"
+    }
+  ],
+  "recommendation": "route1",
+  "reason": "标准路线（route1）适合当前需求，Python有丰富的爬虫库，开发速度快，成本适中，风险较低"
+}

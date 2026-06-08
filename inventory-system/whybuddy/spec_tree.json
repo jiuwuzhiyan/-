@@ -1,0 +1,238 @@
+{
+  "rootNodeId": "n0",
+  "version": 2,
+  "successCriteria": [
+    { "id": "sc1", "text": "UI风格为深色科技风，色彩方案专业大气，具有高级质感" },
+    { "id": "sc2", "text": "核心页面（登录/仪表盘/入库/出库/回库/审批/库存/记录）重新设计完成" },
+    { "id": "sc3", "text": "多角色权限系统正常工作，各角色看到的菜单和操作一致" },
+    { "id": "sc4", "text": "并行审批流程完整，财务和行政可同时审批同一单据（入库/出库/回库）" },
+    { "id": "sc5", "text": "Excel导入导出功能正常工作" },
+    { "id": "sc6", "text": "单据打印功能正常工作" },
+    { "id": "sc7", "text": "系统整体性能良好，页面加载时间<2秒" }
+  ],
+  "nodes": [
+    {
+      "id": "n0",
+      "parentId": null,
+      "type": "requirement",
+      "title": "库存管理系统全套重新设计",
+      "acceptance": "当用户访问系统时，系统应提供深色科技风格的专业界面，并支持出入库全流程管理",
+      "coversCriteria": ["sc1", "sc2"],
+      "evidenceRefs": ["nE1", "nE2"]
+    },
+    {
+      "id": "n1",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "深色科技风格UI重构",
+      "acceptance": "当设计师进行UI设计时，系统应采用深色主题+科技蓝/紫色点缀的配色方案，体现专业高级质感",
+      "coversCriteria": ["sc1"],
+      "evidenceRefs": ["nE1"]
+    },
+    {
+      "id": "n1_1",
+      "parentId": "n1",
+      "type": "design",
+      "title": "配色方案设计",
+      "notes": "主色：深蓝黑 #0a0e17；辅色：科技蓝 #1890ff；强调色：渐变紫 #667eea；文字：白色 #ffffff 灰色 #8b9199",
+      "evidenceRefs": ["nE1"]
+    },
+    {
+      "id": "n1_2",
+      "parentId": "n1",
+      "type": "design",
+      "title": "组件风格设计",
+      "notes": "卡片：深色半透明玻璃态；按钮：渐变色+微光效果；表格：斑马纹+悬浮高亮；图表：发光效果",
+      "evidenceRefs": ["nE1"]
+    },
+    {
+      "id": "n2",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "核心页面重构",
+      "acceptance": "当用户登录系统时，系统应根据角色展示对应的功能页面，包括登录/仪表盘/入库/出库/回库/审批/库存/记录",
+      "coversCriteria": ["sc2", "sc3"],
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n2_1",
+      "parentId": "n2",
+      "type": "design",
+      "title": "登录页设计",
+      "notes": "全屏深色背景，动态粒子/网格背景，表单居中玻璃态卡片，品牌LOGO+系统名称",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n2_2",
+      "parentId": "n2",
+      "type": "design",
+      "title": "仪表盘设计",
+      "notes": "数据卡片网格布局，顶部统计指标（今日入库/出库/待审批/库存总量），图表区域（入库趋势/出库统计），快捷操作入口",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n2_3",
+      "parentId": "n2",
+      "type": "design",
+      "title": "单据管理页设计",
+      "notes": "列表+详情双栏布局，筛选条件侧边栏，单据状态标签（渐变色），批量操作工具栏",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n2_4",
+      "parentId": "n2",
+      "type": "design",
+      "title": "审批流程页设计",
+      "notes": "审批进度时间轴，并行审批状态卡片（财务/行政），审批意见气泡，审批结果实时更新",
+      "evidenceRefs": ["nE2"]
+    },
+    {
+      "id": "n3",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "多角色权限系统",
+      "acceptance": "当系统管理员配置角色权限时，系统应支持业务/财务/行政/管理员四种角色，业务人员可查看所有单据、库存统计、数据导出、打印",
+      "coversCriteria": ["sc3"],
+      "evidenceRefs": ["nE3"]
+    },
+    {
+      "id": "n3_1",
+      "parentId": "n3",
+      "type": "design",
+      "title": "角色权限配置设计",
+      "notes": "角色列表+权限矩阵，勾选式权限分配，角色描述和说明。业务人员：录入单据+查看所有单据+库存统计+导出+打印",
+      "evidenceRefs": ["nE3"]
+    },
+    {
+      "id": "n3_2",
+      "parentId": "n3",
+      "type": "design",
+      "title": "动态菜单设计",
+      "notes": "根据用户角色动态渲染菜单，高亮当前页面，无权限菜单灰度处理",
+      "evidenceRefs": ["nE3"]
+    },
+    {
+      "id": "n4",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "并行审批流程",
+      "acceptance": "当业务人员提交单据（入库/出库/回库）时，财务和行政应能同时进行审批，两者都通过后单据生效",
+      "coversCriteria": ["sc4"],
+      "evidenceRefs": ["nE4"]
+    },
+    {
+      "id": "n4_1",
+      "parentId": "n4",
+      "type": "design",
+      "title": "并行审批状态设计",
+      "notes": "审批卡片双栏（财务/行政），各自独立审批按钮，审批进度百分比，任意一方驳回则整体驳回。适用于入库/出库/回库三种单据",
+      "evidenceRefs": ["nE4"]
+    },
+    {
+      "id": "n5",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "Excel导入导出",
+      "acceptance": "当用户点击导入/导出按钮时，系统应支持.xlsx/.xls格式的Excel文件处理",
+      "coversCriteria": ["sc5"],
+      "evidenceRefs": ["nE5"]
+    },
+    {
+      "id": "n5_1",
+      "parentId": "n5",
+      "type": "design",
+      "title": "Excel功能设计",
+      "notes": "模板下载按钮，拖拽上传区域，进度条显示，导入结果预览，导出字段选择",
+      "evidenceRefs": ["nE5"]
+    },
+    {
+      "id": "n6",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "单据打印功能",
+      "acceptance": "当用户点击打印按钮时，系统应生成可打印的单据格式",
+      "coversCriteria": ["sc6"],
+      "evidenceRefs": ["nE6"]
+    },
+    {
+      "id": "n6_1",
+      "parentId": "n6",
+      "type": "design",
+      "title": "打印样式设计",
+      "notes": "打印专用CSS样式，单据规范化格式，打印预览弹窗",
+      "evidenceRefs": ["nE6"]
+    },
+    {
+      "id": "n7",
+      "parentId": "n0",
+      "type": "requirement",
+      "title": "系统性能优化",
+      "acceptance": "当用户操作时，页面响应时间应<2秒，系统应保持流畅运行",
+      "coversCriteria": ["sc7"],
+      "evidenceRefs": ["nE7"]
+    },
+    {
+      "id": "n7_1",
+      "parentId": "n7",
+      "type": "design",
+      "title": "性能优化策略",
+      "notes": "路由懒加载，组件按需加载，数据缓存策略，图片压缩优化",
+      "evidenceRefs": ["nE7"]
+    },
+    {
+      "id": "nE1",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "深色科技风格参考",
+      "source": "clarified_brief:requirements.ui_redesign"
+    },
+    {
+      "id": "nE2",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "现有系统页面结构",
+      "source": "repo://D:\\出入库\\inventory-system\\client\\src\\pages"
+    },
+    {
+      "id": "nE3",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "现有权限系统设计",
+      "source": "repo://D:\\出入库\\inventory-system\\README.md:角色权限"
+    },
+    {
+      "id": "nE4",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "现有审批流程设计",
+      "source": "repo://D:\\出入库\\inventory-system\\README.md:审批流程"
+    },
+    {
+      "id": "nE5",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "Excel功能需求",
+      "source": "clarified_brief:requirements.functional"
+    },
+    {
+      "id": "nE6",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "打印功能需求",
+      "source": "clarified_brief:requirements.functional"
+    },
+    {
+      "id": "nE7",
+      "parentId": "n0",
+      "type": "evidence",
+      "title": "性能要求",
+      "source": "clarified_brief:successCriteria.sc7"
+    }
+  ],
+  "provenance": {
+    "generationSource": "llm",
+    "promptId": "whybuddy-inventory-redesign-v2",
+    "model": "MiniMax-M2",
+    "fingerprint": "spec-tree-v2-20260607"
+  }
+}

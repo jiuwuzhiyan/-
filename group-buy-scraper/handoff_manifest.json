@@ -1,0 +1,63 @@
+{
+  "project_name": "团购数据采集工具",
+  "version": "1.0.0",
+  "created_at": "2026-06-07",
+  "deliverables": [
+    {
+      "name": "需求文档",
+      "path": "docs/requirements.md",
+      "type": "document",
+      "status": "completed"
+    },
+    {
+      "name": "设计文档",
+      "path": "docs/design.md",
+      "type": "document",
+      "status": "completed"
+    },
+    {
+      "name": "任务文档",
+      "path": "docs/tasks.md",
+      "type": "document",
+      "status": "completed"
+    },
+    {
+      "name": "规格树",
+      "path": "spec_tree.json",
+      "type": "specification",
+      "status": "completed"
+    },
+    {
+      "name": "可追溯矩阵",
+      "path": "traceability_matrix.json",
+      "type": "specification",
+      "status": "completed"
+    },
+    {
+      "name": "清晰需求",
+      "path": "clarified_brief.json",
+      "type": "specification",
+      "status": "completed"
+    },
+    {
+      "name": "伴随日志",
+      "path": "companion_log.json",
+      "type": "specification",
+      "status": "completed"
+    },
+    {
+      "name": "项目上下文",
+      "path": "project_context.json",
+      "type": "specification",
+      "status": "completed"
+    },
+    {
+      "name": "路线选项",
+      "path": "route_options.json",
+      "type": "specification",
+      "status": "completed"
+    }
+  ],
+  "status": "specification_completed",
+  "notes": "规格文档已完成，待用户确认后开始开发实现"
+}

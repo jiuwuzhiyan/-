@@ -14,6 +14,7 @@ import Inventory from './pages/Inventory'
 import Records from './pages/Records'
 import UserManagement from './pages/UserManagement'
 import { authService } from './services/api'
+import './App.css'
 
 const { Header, Sider, Content } = Layout
 
@@ -61,17 +62,19 @@ function MainLayout({ user, setUser }: { user: any; setUser: (user: any) => void
     }
   }
 
+  // 根据角色获取菜单项
   const getMenuItems = (): ItemType[] => {
     const items: ItemType[] = [
-      { key: 'dashboard', label: '工作台' }
+      { key: 'dashboard', label: '工作台', icon: <UserOutlined /> }
     ]
 
-    // 业务人员
+    // 业务人员 - 更新权限：查看所有单据、审批管理
     if (user.role === 'business') {
       items.push(
         { key: 'inbound', label: '入库管理' },
         { key: 'outbound', label: '出库管理' },
         { key: 'return', label: '回库管理' },
+        { key: 'approval', label: '审批管理' },
         { key: 'inventory', label: '库存查询' },
         { key: 'records', label: '出入库记录' }
       )
@@ -125,30 +128,31 @@ function MainLayout({ user, setUser }: { user: any; setUser: (user: any) => void
   const menuItems: MenuProps['items'] = getMenuItems() as MenuProps['items']
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout className="main-layout">
       <Header className="layout-header">
         <div className="logo">唐山中骏世界城库存系统</div>
         <div className="user-info">
-          <span><UserOutlined /> {user.name} ({user.roleName})</span>
-          <a onClick={() => setChangePasswordVisible(true)} style={{ color: '#fff', marginLeft: 16 }}><KeyOutlined /> 修改密码</a>
-          <a onClick={handleLogout} style={{ color: '#fff', marginLeft: 16 }}><LogoutOutlined /> 退出</a>
+          <span className="user-name"><UserOutlined /> {user.name} ({user.roleName})</span>
+          <a onClick={() => setChangePasswordVisible(true)} className="header-link"><KeyOutlined /> 修改密码</a>
+          <a onClick={handleLogout} className="header-link"><LogoutOutlined /> 退出</a>
         </div>
       </Header>
-      <Layout>
-        <Sider width={200} style={{ background: '#fff' }}>
+      <Layout className="layout-body">
+        <Sider width={200} className="layout-sider">
           <Menu
             mode="inline"
+            theme="dark"
             selectedKeys={selectedKeys}
             onSelect={({ key }) => {
               setSelectedKeys([key])
               navigate(`/${key}`)
             }}
             items={menuItems}
-            style={{ height: '100%', borderRight: 0 }}
+            className="side-menu"
           />
         </Sider>
-        <Layout style={{ padding: '0 24px 24px' }}>
-          <Content style={{ background: '#fff', minHeight: 280, marginTop: 24, padding: 24 }}>
+        <Layout className="layout-content-wrapper">
+          <Content className="layout-content">
             {renderContent()}
           </Content>
         </Layout>
@@ -165,6 +169,7 @@ function MainLayout({ user, setUser }: { user: any; setUser: (user: any) => void
         confirmLoading={changePasswordLoading}
         okText="确认修改"
         cancelText="取消"
+        className="dark-modal"
       >
         <Form form={changePasswordForm} layout="vertical">
           <Form.Item
